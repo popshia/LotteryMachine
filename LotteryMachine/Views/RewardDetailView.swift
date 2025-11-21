@@ -5,7 +5,6 @@
 //  Created by Noah on 2025/11/21.
 //
 
-
 import SwiftUI
 
 struct RewardDetailView: View {
@@ -31,7 +30,6 @@ struct RewardDetailView: View {
                 VStack {
                     Text("🎉 Winner\(reward.winners.count > 1 ? "s" : "") 🎉")
                         .font(.title)
-                        .padding()
                     ForEach(reward.winners) { winner in
                         Text(winner.name)
                             .font(.largeTitle)

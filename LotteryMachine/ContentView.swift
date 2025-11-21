@@ -31,27 +31,19 @@ struct ContentView: View {
     @State private var selectedReward: Reward?
 
     var body: some View {
-        NavigationView {
+        NavigationSplitView {
             VStack {
-                List {
-                    ForEach(rewards) { reward in
-                        NavigationLink(
-                            destination: RewardDetailView(
-                                reward: $rewards[getIndex(for: reward)],
-                                newCandidateName: $newCandidateName
-                            )
-                        ) {
-                            HStack {
-                                Text(reward.name)
-                                Spacer()
-                                if !reward.winners.isEmpty {
-                                    Text("Winners: \(reward.winners.count)")
-                                        .font(.headline)
-                                        .foregroundColor(.green)
-                                }
-                            }
+                List(rewards, selection: $selectedReward) { reward in
+                    HStack {
+                        Text(reward.name)
+                        Spacer()
+                        if !reward.winners.isEmpty {
+                            Text("Winners: \(reward.winners.count)")
+                                .font(.headline)
+                                .foregroundColor(.green)
                         }
                     }
+                    .tag(reward)
                 }
                 .listStyle(SidebarListStyle())
 
@@ -63,9 +55,18 @@ struct ContentView: View {
                 .padding()
             }
             .navigationTitle("Lottery Machine")
-
-            Text("Select a reward to see details")
-                .font(.largeTitle)
+        } detail: {
+            if let selectedReward,
+               let index = rewards.firstIndex(where: { $0.id == selectedReward.id })
+            {
+                RewardDetailView(
+                    reward: $rewards[index],
+                    newCandidateName: $newCandidateName
+                )
+            } else {
+                Text("Select a reward to see details")
+                    .font(.largeTitle)
+            }
         }
     }
 
@@ -74,13 +75,6 @@ struct ContentView: View {
             rewards.append(Reward(name: newRewardName, candidates: []))
             newRewardName = ""
         }
-    }
-
-    private func getIndex(for reward: Reward) -> Int {
-        if let index = rewards.firstIndex(where: { $0.id == reward.id }) {
-            return index
-        }
-        return 0
     }
 }
 
