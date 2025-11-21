@@ -121,6 +121,14 @@ struct RewardDetailView: View {
         }
     }
 
+    private func randomDifferentElement<T: Equatable>(
+        from array: [T],
+        excluding current: T?
+    ) -> T? {
+        let filtered = array.filter { $0 != current }
+        return filtered.randomElement() ?? array.randomElement()
+    }
+
     private func drawWinner() {
         guard !reward.candidates.isEmpty else { return }
 
@@ -135,7 +143,10 @@ struct RewardDetailView: View {
                 deadline: .now() + Double(i) * highlightDelay
             ) {
                 withAnimation {
-                    highlightedCandidate = reward.candidates.randomElement()
+                    highlightedCandidate = randomDifferentElement(
+                        from: reward.candidates,
+                        excluding: highlightedCandidate
+                    )
                 }
             }
         }
