@@ -14,7 +14,8 @@ struct RewardDetailView: View {
     @State private var isDrawing = false
     @State private var highlightedCandidate: Candidate?
     @State private var numberOfWinners = 1
-    @State private var spinningDuration = 3.0
+    @State private var spinningDuration = 1.0
+    @State private var showConfetti = false
 
     let columns = [
         GridItem(.adaptive(minimum: 200))
@@ -24,6 +25,7 @@ struct RewardDetailView: View {
         VStack {
             Text(reward.name)
                 .font(.largeTitle)
+                .fontWeight(.bold)
                 .padding()
 
             if !reward.winners.isEmpty {
@@ -102,7 +104,14 @@ struct RewardDetailView: View {
 
             Spacer()
         }
-        .navigationTitle(reward.name)
+        .navigationTitle("C-Link 尾牙抽獎")
+        .overlay(
+            Group {
+                if showConfetti {
+                    ConfettiView()
+                }
+            }
+        )
     }
 
     private func addCandidate() {
@@ -139,6 +148,10 @@ struct RewardDetailView: View {
                 highlightedCandidate = nil
             }
             isDrawing = false
+            showConfetti = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                showConfetti = false
+            }
         }
     }
 }

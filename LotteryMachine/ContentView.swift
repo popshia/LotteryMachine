@@ -10,19 +10,22 @@ import SwiftUI
 struct ContentView: View {
     @State private var rewards = [
         Reward(
-            name: "First Prize",
+            name: "MacBook Pro 14\"",
             candidates: [
-                Candidate(name: "Alice"), Candidate(name: "Bob"),
-                Candidate(name: "Charlie"),
+                Candidate(name: "Alice"), Candidate(name: "Tai"),
+                Candidate(name: "Jordan"),
             ]
         ),
         Reward(
-            name: "Second Prize",
-            candidates: [Candidate(name: "Dave"), Candidate(name: "Eve")]
+            name: "Switch 2",
+            candidates: [Candidate(name: "YcKao"), Candidate(name: "Marty")]
         ),
         Reward(
-            name: "Third Prize",
-            candidates: [Candidate(name: "Frank")]
+            name: "Playstation 5",
+            candidates: [
+                Candidate(name: "Serena"), Candidate(name: "Kevin"),
+                Candidate(name: "Tony"), Candidate(name: "Nemo"),
+            ]
         ),
     ]
 
@@ -38,9 +41,11 @@ struct ContentView: View {
                         Text(reward.name)
                         Spacer()
                         if !reward.winners.isEmpty {
-                            Text("Winners: \(reward.winners.count)")
-                                .font(.headline)
-                                .foregroundColor(.green)
+                            ForEach(reward.winners) { winner in
+                                Text("\(winner.name)")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                            }
                         }
                     }
                     .tag(reward)
@@ -57,7 +62,9 @@ struct ContentView: View {
             .navigationTitle("Lottery Machine")
         } detail: {
             if let selectedReward,
-               let index = rewards.firstIndex(where: { $0.id == selectedReward.id })
+                let index = rewards.firstIndex(where: {
+                    $0.id == selectedReward.id
+                })
             {
                 RewardDetailView(
                     reward: $rewards[index],
