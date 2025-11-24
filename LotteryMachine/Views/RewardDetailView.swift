@@ -15,7 +15,7 @@ struct RewardDetailView: View {
     @State private var highlightedCandidate: Candidate?
     @State private var numberOfWinners = 1
     @State private var spinningDuration = 1.0
-    @State private var showConfetti = false
+    @State private var confettiBursts: [UUID] = []
 
     let columns = [
         GridItem(.adaptive(minimum: 200))
@@ -106,10 +106,14 @@ struct RewardDetailView: View {
         }
         .navigationTitle("C-Link 尾牙抽獎")
         .overlay(
-            Group {
-                if showConfetti {
-                    ConfettiView()
-                }
+            ForEach(confettiBursts, id: \.self) { id in
+                ConfettiView()
+                    .allowsHitTesting(false)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                            confettiBursts.removeAll { $0 == id }
+                        }
+                    }
             }
         )
     }
@@ -134,35 +138,53 @@ struct RewardDetailView: View {
 
         isDrawing = true
         reward.winners = []
+        var availableCandidates = reward.candidates
 
-        let highlightDelay = 0.1
-        let numberOfHighlights = Int(spinningDuration / highlightDelay)
+        func drawNextWinner() {
+            if reward.winners.count >= numberOfWinners
+                || availableCandidates.isEmpty
+            {
+                isDrawing = false
+                return
+            }
 
-        for i in 0..<numberOfHighlights {
-            DispatchQueue.main.asyncAfter(
-                deadline: .now() + Double(i) * highlightDelay
-            ) {
-                withAnimation {
-                    highlightedCandidate = randomDifferentElement(
-                        from: reward.candidates,
-                        excluding: highlightedCandidate
-                    )
+            let highlightDelay = 0.2
+            let numberOfHighlights = Int(spinningDuration / highlightDelay)
+
+            for i in 0..<numberOfHighlights {
+                DispatchQueue.main.asyncAfter(
+                    deadline: .now() + Double(i) * highlightDelay
+                ) {
+                    withAnimation {
+                        highlightedCandidate = randomDifferentElement(
+                            from: availableCandidates,
+                            excluding: highlightedCandidate
+                        )
+                    }
+                }
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + spinningDuration) {
+                guard let winner = availableCandidates.randomElement() else {
+                    isDrawing = false
+                    return
+                }
+
+                availableCandidates.removeAll { $0.id == winner.id }
+
+                withAnimation(.spring()) {
+                    reward.winners.append(winner)
+                    highlightedCandidate = nil
+                }
+
+                confettiBursts.append(UUID())
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    drawNextWinner()
                 }
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + spinningDuration) {
-            withAnimation(.spring()) {
-                reward.winners = Array(
-                    reward.candidates.shuffled().prefix(numberOfWinners)
-                )
-                highlightedCandidate = nil
-            }
-            isDrawing = false
-            showConfetti = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                showConfetti = false
-            }
-        }
+        drawNextWinner()
     }
 }
