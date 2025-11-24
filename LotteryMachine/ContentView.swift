@@ -5,38 +5,50 @@
 //  Created by Noah on 2025/11/21.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var rewards: [Reward]
+    @Query(sort: [
+        SortDescriptor(\Reward.category), SortDescriptor(\Reward.name),
+    ])
+    private var rewards: [Reward]
 
     @State private var selectedReward: Reward?
+
+    private var groupedRewards: [String: [Reward]] {
+        Dictionary(grouping: rewards, by: { $0.category })
+    }
+
+    private var sortedCategories: [String] {
+        groupedRewards.keys.sorted()
+    }
 
     var body: some View {
         NavigationSplitView {
             VStack {
                 List(selection: $selectedReward) {
-                    Section(
-                        header: HStack {
-                            Text("Rewards")
-                            Spacer()
-                        }
-                    ) {
-                        ForEach(rewards) { reward in
-                            HStack {
-                                Text(reward.name)
-                                Spacer()
-                                if !reward.winners.isEmpty {
-                                    ForEach(reward.winners) { winner in
-                                        Text("\(winner.name)")
-                                            .font(.headline)
-                                            .foregroundColor(.green)
+                    ForEach(sortedCategories, id: \.self) { category in
+                        Section(
+                            header: Text(
+                                category.isEmpty ? "Uncategorized" : category
+                            )
+                        ) {
+                            ForEach(groupedRewards[category] ?? []) { reward in
+                                HStack {
+                                    Text(reward.name)
+                                    Spacer()
+                                    if !reward.winners.isEmpty {
+                                        ForEach(reward.winners) { winner in
+                                            Text("\(winner.name)")
+                                                .font(.headline)
+                                                .foregroundColor(.green)
+                                        }
                                     }
                                 }
+                                .tag(reward)
                             }
-                            .tag(reward)
                         }
                     }
                 }
@@ -62,6 +74,46 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(for: [Reward.self, Candidate.self], inMemory: true)
+    do {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: Reward.self,
+            Candidate.self,
+            configurations: config
+        )
+
+        let reward1 = Reward(
+            name: "Christmas Bonus",
+            category: "Holiday",
+            numberOfWinners: 2
+        )
+        reward1.candidates.append(Candidate(name: "Noah"))
+        reward1.candidates.append(Candidate(name: "Liam"))
+        reward1.candidates.append(Candidate(name: "Emma"))
+
+        let reward2 = Reward(
+            name: "Holiday Raffle",
+            category: "Holiday",
+            numberOfWinners: 1
+        )
+        reward2.candidates.append(Candidate(name: "Olivia"))
+        reward2.candidates.append(Candidate(name: "William"))
+
+        let reward3 = Reward(
+            name: "Q1 Bonus",
+            category: "Quarterly",
+            numberOfWinners: 1
+        )
+
+        container.mainContext.insert(reward1)
+        container.mainContext.insert(reward2)
+        container.mainContext.insert(reward3)
+
+        return ContentView()
+            .modelContainer(container)
+    } catch {
+        fatalError(
+            "Failed to create ModelContainer for Preview: \(error.localizedDescription)"
+        )
+    }
 }

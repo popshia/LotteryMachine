@@ -12,7 +12,6 @@ struct RewardDetailView: View {
 
     @State private var isDrawing = false
     @State private var highlightedCandidate: Candidate?
-    @State private var numberOfWinners = 1
     @State private var spinningDuration = 1.0
     @State private var confettiBursts: [UUID] = []
 
@@ -22,21 +21,25 @@ struct RewardDetailView: View {
 
     var body: some View {
         VStack {
-            Text(reward.name)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+            HStack {
+                Text("\(reward.name) * \(reward.numberOfWinners)")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding()
+            }
 
             if !reward.winners.isEmpty {
                 VStack {
                     Text("🎉 Winner\(reward.winners.count > 1 ? "s" : "") 🎉")
                         .font(.title)
-                    ForEach(reward.winners) { winner in
-                        Text(winner.name)
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
-                            .padding(.vertical, 2)
+                    HStack {
+                        ForEach(reward.winners) { winner in
+                            Text(winner.name)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                                .padding(.vertical, 2)
+                        }
                     }
                 }
                 .padding()
@@ -50,7 +53,12 @@ struct RewardDetailView: View {
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(reward.candidates) { candidate in
+                    ForEach(
+                        reward.candidates.sorted {
+                            $0.name.localizedCaseInsensitiveCompare($1.name)
+                                == .orderedAscending
+                        }
+                    ) { candidate in
                         CandidateCardView(
                             candidate: candidate,
                             isHighlighted: highlightedCandidate == candidate,
@@ -62,17 +70,6 @@ struct RewardDetailView: View {
             }
 
             HStack {
-                Stepper(
-                    "Number of Winners: \(numberOfWinners)",
-                    value: $numberOfWinners,
-                    in: 1...max(1, reward.candidates.count)
-                )
-                .padding(.horizontal)
-                .disabled(
-                    isDrawing || reward.candidates.isEmpty
-                        || reward.candidates.count == 1
-                )
-
                 Stepper(
                     "Spinning Duration: \(String(format: "%.1f", spinningDuration))s",
                     value: $spinningDuration,
@@ -126,7 +123,7 @@ struct RewardDetailView: View {
         var availableCandidates = reward.candidates
 
         func drawNextWinner() {
-            if reward.winners.count >= numberOfWinners
+            if reward.winners.count >= reward.numberOfWinners
                 || availableCandidates.isEmpty
             {
                 isDrawing = false
