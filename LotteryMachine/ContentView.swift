@@ -12,8 +12,6 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var rewards: [Reward]
 
-    @State private var newRewardName = ""
-    @State private var newCandidateName = ""
     @State private var selectedReward: Reward?
 
     var body: some View {
@@ -43,60 +41,23 @@ struct ContentView: View {
                     }
                 }
                 .listStyle(SidebarListStyle())
-
-                HStack {
-                    TextField("New Reward", text: $newRewardName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onSubmit { addReward() }
-                }
-                .padding()
             }
             .navigationTitle("Lottery Machine")
-            .onAppear {
-                if rewards.isEmpty {
-                    insertSampleData()
-                }
-            }
         } detail: {
             if let selectedReward {
                 RewardDetailView(
-                    reward: selectedReward,
-                    newCandidateName: $newCandidateName
+                    reward: selectedReward
                 )
             } else {
-                Text("Select a reward to see details")
-                    .font(.largeTitle)
+                if rewards.isEmpty {
+                    Text("Go to Settings to add rewards and candidates.")
+                        .font(.largeTitle)
+                } else {
+                    Text("Select a reward to see details")
+                        .font(.largeTitle)
+                }
             }
         }
-    }
-
-    private func addReward() {
-        if !newRewardName.isEmpty {
-            let newReward = Reward(name: newRewardName, candidates: [])
-            modelContext.insert(newReward)
-            newRewardName = ""
-        }
-    }
-    
-    private func insertSampleData() {
-        modelContext.insert(Reward(
-            name: "MacBook Pro 14\"",
-            candidates: [
-                Candidate(name: "Alice"), Candidate(name: "Tai"),
-                Candidate(name: "Jordan"),
-            ]
-        ))
-        modelContext.insert(Reward(
-            name: "Switch 2",
-            candidates: [Candidate(name: "YcKao"), Candidate(name: "Marty")]
-        ))
-        modelContext.insert(Reward(
-            name: "Playstation 5",
-            candidates: [
-                Candidate(name: "Serena"), Candidate(name: "Kevin"),
-                Candidate(name: "Tony"), Candidate(name: "Nemo"),
-            ]
-        ))
     }
 }
 

@@ -10,6 +10,7 @@ import SwiftData
 @Model
 class Reward {
     var name: String
+    @Relationship(deleteRule: .cascade)
     var candidates: [Candidate]
     var winners: [Candidate] = []
 

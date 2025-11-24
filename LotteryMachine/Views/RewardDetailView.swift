@@ -9,7 +9,6 @@ import SwiftUI
 
 struct RewardDetailView: View {
     var reward: Reward
-    @Binding var newCandidateName: String
 
     @State private var isDrawing = false
     @State private var highlightedCandidate: Candidate?
@@ -63,13 +62,6 @@ struct RewardDetailView: View {
             }
 
             HStack {
-                TextField("New Candidate", text: $newCandidateName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .onSubmit { addCandidate() }
-            }
-            .padding()
-
-            HStack {
                 Stepper(
                     "Number of Winners: \(numberOfWinners)",
                     value: $numberOfWinners,
@@ -116,13 +108,6 @@ struct RewardDetailView: View {
                     }
             }
         )
-    }
-
-    private func addCandidate() {
-        if !newCandidateName.isEmpty {
-            reward.candidates.append(Candidate(name: newCandidateName))
-            newCandidateName = ""
-        }
     }
 
     private func randomDifferentElement<T: Equatable>(
