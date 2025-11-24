@@ -36,19 +36,28 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             VStack {
-                List(rewards, selection: $selectedReward) { reward in
-                    HStack {
-                        Text(reward.name)
-                        Spacer()
-                        if !reward.winners.isEmpty {
-                            ForEach(reward.winners) { winner in
-                                Text("\(winner.name)")
-                                    .font(.headline)
-                                    .foregroundColor(.green)
+                List(selection: $selectedReward) {
+                    Section(
+                        header: HStack {
+                            Text("Rewards")
+                            Spacer()
+                        }
+                    ) {
+                        ForEach(rewards) { reward in
+                            HStack {
+                                Text(reward.name)
+                                Spacer()
+                                if !reward.winners.isEmpty {
+                                    ForEach(reward.winners) { winner in
+                                        Text("\(winner.name)")
+                                            .font(.headline)
+                                            .foregroundColor(.green)
+                                    }
+                                }
                             }
+                            .tag(reward)
                         }
                     }
-                    .tag(reward)
                 }
                 .listStyle(SidebarListStyle())
 
