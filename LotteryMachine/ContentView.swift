@@ -6,28 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State private var rewards = [
-        Reward(
-            name: "MacBook Pro 14\"",
-            candidates: [
-                Candidate(name: "Alice"), Candidate(name: "Tai"),
-                Candidate(name: "Jordan"),
-            ]
-        ),
-        Reward(
-            name: "Switch 2",
-            candidates: [Candidate(name: "YcKao"), Candidate(name: "Marty")]
-        ),
-        Reward(
-            name: "Playstation 5",
-            candidates: [
-                Candidate(name: "Serena"), Candidate(name: "Kevin"),
-                Candidate(name: "Tony"), Candidate(name: "Nemo"),
-            ]
-        ),
-    ]
+    @Environment(\.modelContext) private var modelContext
+    @Query private var rewards: [Reward]
 
     @State private var newRewardName = ""
     @State private var newCandidateName = ""
@@ -69,14 +52,15 @@ struct ContentView: View {
                 .padding()
             }
             .navigationTitle("Lottery Machine")
+            .onAppear {
+                if rewards.isEmpty {
+                    insertSampleData()
+                }
+            }
         } detail: {
-            if let selectedReward,
-                let index = rewards.firstIndex(where: {
-                    $0.id == selectedReward.id
-                })
-            {
+            if let selectedReward {
                 RewardDetailView(
-                    reward: $rewards[index],
+                    reward: selectedReward,
                     newCandidateName: $newCandidateName
                 )
             } else {
@@ -88,12 +72,35 @@ struct ContentView: View {
 
     private func addReward() {
         if !newRewardName.isEmpty {
-            rewards.append(Reward(name: newRewardName, candidates: []))
+            let newReward = Reward(name: newRewardName, candidates: [])
+            modelContext.insert(newReward)
             newRewardName = ""
         }
+    }
+    
+    private func insertSampleData() {
+        modelContext.insert(Reward(
+            name: "MacBook Pro 14\"",
+            candidates: [
+                Candidate(name: "Alice"), Candidate(name: "Tai"),
+                Candidate(name: "Jordan"),
+            ]
+        ))
+        modelContext.insert(Reward(
+            name: "Switch 2",
+            candidates: [Candidate(name: "YcKao"), Candidate(name: "Marty")]
+        ))
+        modelContext.insert(Reward(
+            name: "Playstation 5",
+            candidates: [
+                Candidate(name: "Serena"), Candidate(name: "Kevin"),
+                Candidate(name: "Tony"), Candidate(name: "Nemo"),
+            ]
+        ))
     }
 }
 
 #Preview {
     ContentView()
+        .modelContainer(for: [Reward.self, Candidate.self], inMemory: true)
 }

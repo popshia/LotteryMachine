@@ -5,16 +5,26 @@
 //  Created by Noah on 2025/11/21.
 //
 
-import Foundation
+import SwiftData
 
-struct Reward: Identifiable, Hashable {
-    let id = UUID()
+@Model
+class Reward {
     var name: String
     var candidates: [Candidate]
     var winners: [Candidate] = []
+
+    init(name: String = "", candidates: [Candidate] = [], winners: [Candidate] = []) {
+        self.name = name
+        self.candidates = candidates
+        self.winners = winners
+    }
 }
 
-struct Candidate: Identifiable, Hashable {
-    let id = UUID()
+@Model
+class Candidate {
     var name: String
+
+    init(name: String = "") {
+        self.name = name
+    }
 }

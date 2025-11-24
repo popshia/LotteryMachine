@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RewardDetailView: View {
-    @Binding var reward: Reward
+    var reward: Reward
     @Binding var newCandidateName: String
 
     @State private var isDrawing = false
