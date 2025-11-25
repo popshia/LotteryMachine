@@ -5,7 +5,6 @@
 //  Created by Noah on 2025/11/21.
 //
 
-
 import SwiftUI
 
 struct CandidateCardView: View {
@@ -16,7 +15,7 @@ struct CandidateCardView: View {
     var body: some View {
         VStack {
             Text(candidate.name)
-                .font(.title2)
+                .font(.title)
                 .padding()
         }
         .frame(width: 180, height: 100)

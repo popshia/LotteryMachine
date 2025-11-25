@@ -217,6 +217,7 @@ struct CandidateDetailView: View {
                 List {
                     ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
                         Text(candidate.name)
+                            .foregroundColor(reward.winners.contains(candidate) ? .green : .primary)
                             .contextMenu {
                                 Button("Edit") {
                                     candidateToEdit = candidate
@@ -228,9 +229,6 @@ struct CandidateDetailView: View {
                                 }
                             }
                     }
-                    .onDelete(perform: { indexSet in // Enable swipe-to-delete for candidates
-                        deleteCandidates(offsets: indexSet)
-                    })
                 }
             }
 
