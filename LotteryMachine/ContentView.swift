@@ -33,19 +33,14 @@ struct ContentView: View {
                         Section(
                             header: Text(
                                 category.isEmpty ? "Uncategorized" : category
-                            )
+                            ).font(.title2)
                         ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
                                 HStack {
-                                    Text(reward.name)
-                                    Spacer()
-                                    if !reward.winners.isEmpty {
-                                        ForEach(reward.winners) { winner in
-                                            Text("\(winner.name)")
-                                                .font(.headline)
-                                                .foregroundColor(.green)
-                                        }
-                                    }
+                                    Text(reward.name).foregroundStyle(
+                                        !reward.winners.isEmpty ? .green : .primary
+                                    )
+                                    .font(.title)
                                 }
                                 .tag(reward)
                             }
@@ -56,6 +51,7 @@ struct ContentView: View {
             }
             .navigationTitle("Lottery Machine")
         } detail: {
+            //        } content: {
             if let selectedReward {
                 RewardDetailView(
                     reward: selectedReward
@@ -70,6 +66,8 @@ struct ContentView: View {
                 }
             }
         }
+        //        } detail: {
+        //        }
     }
 }
 

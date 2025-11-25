@@ -198,17 +198,23 @@ struct CandidateDetailView: View {
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {
-                Stepper(
-                    "Number of Winners: \(reward.numberOfWinners)",
-                    value: $reward.numberOfWinners,
-                    in: 1...max(1, reward.candidates.count)
-                )
-                .disabled(reward.candidates.isEmpty)
-                .onChange(of: reward.numberOfWinners) {
-                    do {
-                        try modelContext.save()
-                    } catch {
-                        print("Failed to save number of winners: \(error)")
+                HStack {
+                    Stepper(
+                        "Number of Winners: \(reward.numberOfWinners)",
+                        value: $reward.numberOfWinners,
+                        in: 1...max(1, reward.candidates.count)
+                    )
+                    .disabled(reward.candidates.isEmpty)
+                    .onChange(of: reward.numberOfWinners) {
+                        do {
+                            try modelContext.save()
+                        } catch {
+                            print("Failed to save number of winners: \(error)")
+                        }
+                    }
+                    .padding()
+                    Button("Reset Winners") {
+                        resetWinners(from: reward)
                     }
                 }
             }
@@ -251,6 +257,17 @@ struct CandidateDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
+        }
+    }
+
+    private func resetWinners(from reward: Reward) {
+        withAnimation {
+            reward.winners.removeAll()
+            do {
+                try modelContext.save()
+            } catch {
+                print("Failed to save edited candidate: \(error.localizedDescription)")
+            }
         }
     }
 

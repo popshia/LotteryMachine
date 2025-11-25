@@ -73,7 +73,7 @@ struct RewardDetailView: View {
                 Stepper(
                     "Spinning Duration: \(String(format: "%.1f", spinningDuration))s",
                     value: $spinningDuration,
-                    in: 1...10,
+                    in: 0.5...10,
                     step: 0.5
                 )
                 .padding(.horizontal)
@@ -127,10 +127,11 @@ struct RewardDetailView: View {
                 || availableCandidates.isEmpty
             {
                 isDrawing = false
+                confettiBursts.append(UUID())
                 return
             }
 
-            let highlightDelay = 0.2
+            let highlightDelay = 0.1
             let numberOfHighlights = Int(spinningDuration / highlightDelay)
 
             for i in 0..<numberOfHighlights {
@@ -159,9 +160,7 @@ struct RewardDetailView: View {
                     highlightedCandidate = nil
                 }
 
-                confettiBursts.append(UUID())
-
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     drawNextWinner()
                 }
             }

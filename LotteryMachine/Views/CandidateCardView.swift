@@ -15,7 +15,7 @@ struct CandidateCardView: View {
     var body: some View {
         VStack {
             Text(candidate.name)
-                .font(.title)
+                .font(.largeTitle)
                 .padding()
         }
         .frame(width: 180, height: 100)
