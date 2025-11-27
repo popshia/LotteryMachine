@@ -8,34 +8,52 @@
 import SwiftData
 import SwiftUI
 
+/// A view for managing rewards and their candidates.
 struct SettingsView: View {
+    // MARK: - Environment and Query
+    
+    /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
+    
+    /// A query to fetch all rewards, sorted by category and name.
     @Query(sort: [SortDescriptor(\Reward.category), SortDescriptor(\Reward.name)])
     private var rewards: [Reward]
 
-    // State for add reward sheet
+    // MARK: - State
+    
+    /// A boolean to control the presentation of the "Add Reward" sheet.
     @State private var isShowingAddRewardSheet = false
 
-    // State for editing a reward
+    /// A boolean to control the presentation of the "Edit Reward" alert.
     @State private var isEditingReward = false
+    
+    /// The reward currently being edited.
     @State private var rewardToEdit: Reward?
+    
+    /// The new name for the reward being edited.
     @State private var editingRewardName = ""
 
-    // State for adding new candidates (passed to detail view)
+    /// The name for a new candidate, passed to the detail view.
     @State private var newCandidateName = ""
 
+    // MARK: - Computed Properties
+    
+    /// A dictionary grouping rewards by their category.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
     }
 
+    /// An array of unique, sorted reward categories.
     private var sortedCategories: [String] {
-        // Return unique, sorted categories
         Array(Set(rewards.map { $0.category })).sorted()
     }
 
+    // MARK: - Body
+    
     var body: some View {
         NavigationView {
             VStack {
+                // MARK: - Rewards List
                 List {
                     ForEach(sortedCategories, id: \.self) { category in
                         Section(header: Text(category.isEmpty ? "Uncategorized" : category)) {
@@ -74,6 +92,7 @@ struct SettingsView: View {
                     Text("Enter a new name for the reward.")
                 }
 
+                // MARK: - Add Reward Button
                 Button(action: {
                     isShowingAddRewardSheet = true
                 }) {
@@ -95,12 +114,24 @@ struct SettingsView: View {
         .frame(minWidth: 600, minHeight: 400)
     }
 
+    // MARK: - Private Methods
+    
+    /// Adds a new reward to the model context.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the new reward.
+    ///   - category: The category of the new reward.
     private func addReward(name: String, category: String) {
         guard !name.isEmpty else { return }
         let newReward = Reward(name: name, category: category)
         modelContext.insert(newReward)
     }
 
+    /// Edits the name of an existing reward.
+    ///
+    /// - Parameters:
+    ///   - reward: The reward to edit.
+    ///   - newName: The new name for the reward.
     private func editReward(reward: Reward, newName: String) {
         reward.name = newName
         do {
@@ -110,12 +141,18 @@ struct SettingsView: View {
         }
     }
 
+    /// Deletes a reward from the model context.
+    ///
+    /// - Parameter reward: The reward to delete.
     private func deleteReward(_ reward: Reward) {
         withAnimation {
             modelContext.delete(reward)
         }
     }
 
+    /// Adds a new candidate to a reward.
+    ///
+    /// - Parameter reward: The reward to which the candidate will be added.
     private func addCandidate(to reward: Reward) {
         guard !newCandidateName.isEmpty else { return }
         let newCandidate = Candidate(name: newCandidateName)
@@ -124,16 +161,35 @@ struct SettingsView: View {
     }
 }
 
+/// A view for adding a new reward.
 struct AddRewardView: View {
+    // MARK: - Bindings and Properties
+    
+    /// A binding to control the presentation of the view.
     @Binding var isPresented: Bool
+    
+    /// An array of existing categories to choose from.
     let categories: [String]
+    
+    /// A closure to be called when the reward is saved.
     let onSave: (String, String) -> Void
 
+    // MARK: - State
+    
+    /// The name of the new reward.
     @State private var name: String = ""
+    
+    /// The selected category for the new reward.
     @State private var selectedCategory: String = ""
+    
+    /// A boolean to indicate whether to create a new category.
     @State private var isNewCategory: Bool = false
+    
+    /// The name of the new category.
     @State private var newCategory: String = ""
 
+    // MARK: - Body
+    
     var body: some View {
         VStack {
             Text("Add New Reward")
@@ -182,19 +238,33 @@ struct AddRewardView: View {
     }
 }
 
+/// A view for managing the candidates of a specific reward.
 struct CandidateDetailView: View {
+    // MARK: - Environment and Bindings
+    
+    /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
+    
+    /// The reward whose candidates are being managed.
     @Bindable var reward: Reward
 
-    // State for editing a candidate
+    /// A boolean to control the presentation of the "Edit Candidate" alert.
     @State private var isEditingCandidate = false
+    
+    /// The candidate currently being edited.
     @State private var candidateToEdit: Candidate?
+    
+    /// The new name for the candidate being edited.
     @State private var editingCandidateName = ""
 
-    // Bindings and closures from parent
+    /// A binding to the new candidate's name from the parent view.
     @Binding var newCandidateName: String
+    
+    /// A closure to add a new candidate to the reward.
     let addCandidate: (Reward) -> Void
 
+    // MARK: - Body
+    
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {
@@ -245,8 +315,8 @@ struct CandidateDetailView: View {
             }
 
         }
-        .frame(maxWidth: .infinity, alignment: .leading) // Apply leading alignment here
-        .padding() // Keep outer padding
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
         .navigationTitle("Candidates")
         .alert("Enter a new name", isPresented: $isEditingCandidate) {
             TextField("New Name", text: $editingCandidateName)
@@ -260,6 +330,11 @@ struct CandidateDetailView: View {
         }
     }
 
+    // MARK: - Private Methods
+    
+    /// Resets the list of winners for the reward.
+    ///
+    /// - Parameter reward: The reward to reset.
     private func resetWinners(from reward: Reward) {
         withAnimation {
             reward.winners.removeAll()
@@ -271,6 +346,9 @@ struct CandidateDetailView: View {
         }
     }
 
+    /// Deletes candidates at the specified offsets.
+    ///
+    /// - Parameter offsets: The index set of candidates to delete.
     private func deleteCandidates(offsets: IndexSet) {
         withAnimation {
             // Need to map offsets to the sorted array
@@ -282,6 +360,11 @@ struct CandidateDetailView: View {
         }
     }
 
+    /// Edits the name of a candidate.
+    ///
+    /// - Parameters:
+    ///   - candidate: The candidate to edit.
+    ///   - newName: The new name for the candidate.
     private func editCandidate(candidate: Candidate, newName: String) {
         candidate.name = newName
         do {
@@ -291,6 +374,11 @@ struct CandidateDetailView: View {
         }
     }
 
+    /// Deletes a candidate from a reward.
+    ///
+    /// - Parameters:
+    ///   - candidate: The candidate to delete.
+    ///   - reward: The reward from which to delete the candidate.
     private func deleteCandidate(_ candidate: Candidate, from reward: Reward) {
         withAnimation {
             if let index = reward.candidates.firstIndex(where: { $0.id == candidate.id }) {
@@ -300,6 +388,8 @@ struct CandidateDetailView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     do {

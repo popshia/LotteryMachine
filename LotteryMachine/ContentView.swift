@@ -8,26 +8,38 @@
 import SwiftData
 import SwiftUI
 
+/// The main view of the app, displaying a list of rewards and their details.
 struct ContentView: View {
+    // MARK: - Properties
+    
+    /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
+    
+    /// A query to fetch all rewards from SwiftData, sorted by category and name.
     @Query(sort: [
         SortDescriptor(\Reward.category), SortDescriptor(\Reward.name),
     ])
     private var rewards: [Reward]
 
+    /// The currently selected reward in the list.
     @State private var selectedReward: Reward?
 
+    /// A computed property that groups rewards by their category.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
     }
 
+    /// A computed property that returns a sorted list of reward categories.
     private var sortedCategories: [String] {
         groupedRewards.keys.sorted()
     }
+    
+    // MARK: - Body
 
     var body: some View {
         NavigationSplitView {
             VStack {
+                // MARK: - Rewards List
                 List(selection: $selectedReward) {
                     ForEach(sortedCategories, id: \.self) { category in
                         Section(
@@ -51,7 +63,7 @@ struct ContentView: View {
             }
             .navigationTitle("Lottery Machine")
         } detail: {
-            //        } content: {
+            // MARK: - Detail View
             if let selectedReward {
                 RewardDetailView(
                     reward: selectedReward
@@ -66,10 +78,10 @@ struct ContentView: View {
                 }
             }
         }
-        //        } detail: {
-        //        }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     do {
