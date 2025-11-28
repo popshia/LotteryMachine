@@ -11,9 +11,8 @@ import SwiftUI
 /// The main entry point of the Lottery Machine app.
 @main
 struct LotteryMachineApp: App {
-    
     // MARK: - Properties
-    
+
     /// The shared model container for SwiftData, configured for the `Reward` and `Candidate` models.
     ///
     /// This container is responsible for loading and managing the app's data.
@@ -46,7 +45,7 @@ struct LotteryMachineApp: App {
     }()
 
     // MARK: - Body
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -54,10 +53,10 @@ struct LotteryMachineApp: App {
         .modelContainer(sharedModelContainer)
 
         #if os(macOS)
-        Settings {
-            SettingsView()
-                .modelContainer(sharedModelContainer)
-        }
+            Settings {
+                SettingsView()
+                    .modelContainer(sharedModelContainer)
+            }
         #endif
     }
 }

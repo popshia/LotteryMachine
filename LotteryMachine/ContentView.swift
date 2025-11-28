@@ -15,6 +15,9 @@ struct ContentView: View {
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
 
+    /// The current color scheme (light/dark mode).
+    @Environment(\.colorScheme) private var colorScheme
+
     /// A query to fetch all rewards from SwiftData, sorted by category and name.
     @Query(sort: [
         SortDescriptor(\Reward.category), SortDescriptor(\Reward.name),
@@ -45,7 +48,9 @@ struct ContentView: View {
                         Section(
                             header: Text(
                                 category.isEmpty ? "Uncategorized" : category
-                            ).font(.title2)
+                            )
+                            .font(.title2)
+                            .padding()
                         ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
                                 HStack {
@@ -77,10 +82,10 @@ struct ContentView: View {
                 )
             } else {
                 if rewards.isEmpty {
-                    Text("Go to Settings to add rewards and candidates.")
+                    Text("請到設定裡增加尾牙獎項")
                         .font(.largeTitle)
                 } else {
-                    Text("Select a reward to see details")
+                    Text("請選擇一個獎項以查看詳細資訊")
                         .font(.largeTitle)
                 }
             }

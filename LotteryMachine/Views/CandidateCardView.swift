@@ -25,7 +25,8 @@ struct CandidateCardView: View {
     var body: some View {
         VStack {
             Text(candidate.name)
-                .font(.largeTitle)
+                .font(.system(size: 40))
+                .bold()
                 .padding()
         }
         .frame(width: 180, height: 100)
@@ -36,7 +37,7 @@ struct CandidateCardView: View {
                         ? Color.green.opacity(0.6)
                         : (isHighlighted
                             ? Color.yellow.opacity(0.8)
-                            : Color.gray.opacity(0.4))
+                            : Color.gray.opacity(0.6))
                 )
                 .shadow(
                     color: isHighlighted ? .yellow : .clear,

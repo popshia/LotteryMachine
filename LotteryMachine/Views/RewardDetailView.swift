@@ -29,10 +29,10 @@ struct RewardDetailView: View {
 
     /// The audio player for the spinning sound effect.
     @State private var spinningPlayer: AVAudioPlayer?
-    
+
     /// The audio player for the finish sound effect.
     @State private var finishPlayer: AVAudioPlayer?
-    
+
     /// The audio player for the tick sound effect.
     @State private var tickPlayer: AVAudioPlayer?
 
@@ -46,24 +46,20 @@ struct RewardDetailView: View {
     var body: some View {
         VStack {
             // MARK: - Header
-            HStack {
-                Text("\(reward.name) * \(reward.numberOfWinners)")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding()
-            }
+            Text("\(reward.name) * \(reward.numberOfWinners)位")
+                .font(.system(size: 72))
+                .fontWeight(.bold)
+                .padding()
 
             // MARK: - Winners Display
             if !reward.winners.isEmpty {
                 VStack {
-                    Text("🎉 Winner\(reward.winners.count > 1 ? "s" : "") 🎉")
-                        .font(.title)
+                    Text("🎉 中獎者 🎉")
                     Text(
                         reward.winners
                             .map(\.name)
-                            .joined(separator: ", ")
+                            .joined(separator: "    ")
                     )
-                    .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.green)
                 }
@@ -73,6 +69,8 @@ struct RewardDetailView: View {
                         Color.yellow.opacity(0.2)
                     )
                 )
+                .padding()
+                .font(.system(size: 60))
                 .transition(.scale)
             }
 
@@ -98,7 +96,7 @@ struct RewardDetailView: View {
             // MARK: - Controls
             HStack {
                 Stepper(
-                    "Spinning Duration: \(String(format: "%.1f", spinningDuration))s",
+                    "抽取秒數: \(String(format: "%.1f", spinningDuration))s",
                     value: $spinningDuration,
                     in: 0.5...10,
                     step: 0.5
@@ -107,7 +105,7 @@ struct RewardDetailView: View {
             }
 
             Button(action: drawWinner) {
-                Text("Draw Winner")
+                Text("開始抽獎")
                     .font(.largeTitle)
                     .padding()
                     .background(isDrawing ? Color.gray : Color.blue)
