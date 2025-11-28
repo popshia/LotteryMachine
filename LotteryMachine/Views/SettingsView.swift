@@ -50,6 +50,7 @@ struct SettingsView: View {
 
     // MARK: - Body
     
+    /// The content and behavior of the view.
     var body: some View {
         NavigationView {
             VStack {
@@ -190,6 +191,7 @@ struct AddRewardView: View {
 
     // MARK: - Body
     
+    /// The content and behavior of the view.
     var body: some View {
         VStack {
             Text("Add New Reward")
@@ -265,6 +267,7 @@ struct CandidateDetailView: View {
 
     // MARK: - Body
     
+    /// The content and behavior of the view.
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {

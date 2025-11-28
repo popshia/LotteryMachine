@@ -10,18 +10,18 @@ import SwiftUI
 /// A view that displays a candidate's name on a card with visual effects for highlighting and winning.
 struct CandidateCardView: View {
     // MARK: - Properties
-    
+
     /// The candidate to display.
     let candidate: Candidate
-    
+
     /// A boolean indicating whether the card should be highlighted.
     let isHighlighted: Bool
-    
+
     /// A boolean indicating whether the candidate is a winner.
     let isWinner: Bool
 
     // MARK: - Body
-    
+
     var body: some View {
         VStack {
             Text(candidate.name)
@@ -33,10 +33,10 @@ struct CandidateCardView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(
                     isWinner
-                        ? Color.green.opacity(0.3)
+                        ? Color.green.opacity(0.6)
                         : (isHighlighted
-                            ? Color.yellow.opacity(0.5)
-                            : Color.blue.opacity(0.1))
+                            ? Color.yellow.opacity(0.8)
+                            : Color.gray.opacity(0.4))
                 )
                 .shadow(
                     color: isHighlighted ? .yellow : .clear,

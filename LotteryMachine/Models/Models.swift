@@ -7,6 +7,8 @@
 
 import SwiftData
 
+// MARK: - Reward
+
 /// A model representing a lottery reward.
 @Model
 class Reward {
@@ -49,6 +51,8 @@ class Reward {
         self.winners = winners
     }
 }
+
+// MARK: - Candidate
 
 /// A model representing a candidate in the lottery.
 @Model

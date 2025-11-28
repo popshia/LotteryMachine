@@ -5,26 +5,36 @@
 //  Created by Noah on 2025/11/21.
 //
 
+import AVFoundation
 import SwiftUI
 
 /// A view that displays the details of a reward, including the candidates and the winner drawing animation.
 struct RewardDetailView: View {
     // MARK: - Properties
-    
+
     /// The reward to display.
     var reward: Reward
 
     /// A boolean indicating whether the winner drawing animation is in progress.
     @State private var isDrawing = false
-    
+
     /// The candidate currently being highlighted during the drawing animation.
     @State private var highlightedCandidate: Candidate?
-    
+
     /// The duration of the spinning animation for each winner.
     @State private var spinningDuration = 1.0
-    
+
     /// A list of IDs to trigger confetti bursts.
     @State private var confettiBursts: [UUID] = []
+
+    /// The audio player for the spinning sound effect.
+    @State private var spinningPlayer: AVAudioPlayer?
+    
+    /// The audio player for the finish sound effect.
+    @State private var finishPlayer: AVAudioPlayer?
+    
+    /// The audio player for the tick sound effect.
+    @State private var tickPlayer: AVAudioPlayer?
 
     /// The columns for the candidate grid.
     let columns = [
@@ -32,7 +42,7 @@ struct RewardDetailView: View {
     ]
 
     // MARK: - Body
-    
+
     var body: some View {
         VStack {
             // MARK: - Header
@@ -48,15 +58,14 @@ struct RewardDetailView: View {
                 VStack {
                     Text("🎉 Winner\(reward.winners.count > 1 ? "s" : "") 🎉")
                         .font(.title)
-                    HStack {
-                        ForEach(reward.winners) { winner in
-                            Text(winner.name)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.green)
-                                .padding(.vertical, 2)
-                        }
-                    }
+                    Text(
+                        reward.winners
+                            .map(\.name)
+                            .joined(separator: ", ")
+                    )
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
                 }
                 .padding()
                 .background(
@@ -117,6 +126,7 @@ struct RewardDetailView: View {
                 ConfettiView()
                     .allowsHitTesting(false)
                     .onAppear {
+                        // The confetti will disappear after 5 seconds.
                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                             confettiBursts.removeAll { $0 == id }
                         }
@@ -126,7 +136,7 @@ struct RewardDetailView: View {
     }
 
     // MARK: - Private Methods
-    
+
     /// Returns a random element from an array, ensuring it's different from the provided element.
     ///
     /// - Parameters:
@@ -147,6 +157,7 @@ struct RewardDetailView: View {
 
         isDrawing = true
         reward.winners = []
+        spinningPlayer = playSound(named: "spinning.mp3", loop: true)
         var availableCandidates = reward.candidates
 
         /// Recursively draws the next winner until the desired number of winners is reached.
@@ -155,6 +166,9 @@ struct RewardDetailView: View {
                 || availableCandidates.isEmpty
             {
                 isDrawing = false
+                stopSound(spinningPlayer)
+                spinningPlayer = nil
+                finishPlayer = playSound(named: "finish.mp3")
                 confettiBursts.append(UUID())
                 return
             }
@@ -188,6 +202,7 @@ struct RewardDetailView: View {
                 withAnimation(.spring()) {
                     reward.winners.append(winner)
                     highlightedCandidate = nil
+                    playTick()
                 }
 
                 // Draw the next winner after a short delay
@@ -198,5 +213,59 @@ struct RewardDetailView: View {
         }
 
         drawNextWinner()
+    }
+
+    /// Plays a sound from the main bundle.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the sound file.
+    ///   - loop: A boolean indicating whether the sound should loop.
+    /// - Returns: An `AVAudioPlayer` instance, or `nil` if the sound file is not found or fails to play.
+    private func playSound(
+        named name: String,
+        loop: Bool = false
+    ) -> AVAudioPlayer? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: nil) else {
+            print("Audio file not found:", name)
+            return nil
+        }
+
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.numberOfLoops = loop ? -1 : 0
+            if name == "finish.mp3" {
+                player.volume = 0.4
+            } else {
+                player.volume = 0.7
+            }
+            player.prepareToPlay()
+            player.play()
+            return player
+        } catch {
+            print("Failed to create AVAudioPlayer:", error.localizedDescription)
+            return nil
+        }
+    }
+
+    /// Plays the tick sound effect.
+    private func playTick() {
+        if tickPlayer == nil {
+            guard let url = Bundle.main.url(forResource: "tick.mp3", withExtension: nil) else {
+                return
+            }
+            tickPlayer = try? AVAudioPlayer(contentsOf: url)
+            tickPlayer?.volume = 0.5
+            tickPlayer?.prepareToPlay()
+        }
+
+        tickPlayer?.currentTime = 0
+        tickPlayer?.play()
+    }
+
+    /// Stops the specified audio player.
+    ///
+    /// - Parameter player: The audio player to stop.
+    private func stopSound(_ player: AVAudioPlayer?) {
+        player?.stop()
     }
 }

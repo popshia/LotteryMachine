@@ -9,6 +9,9 @@ import SwiftUI
 
 /// A view that displays a confetti animation.
 struct ConfettiView: View {
+    // MARK: - Body
+
+    /// The content and behavior of the view.
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -82,7 +85,7 @@ struct ConfettiParticle: View {
         .position(x: x, y: y)
         .opacity(opacity)
         .onAppear {
-            // Animate upwards and outwards
+            // Animate the particle moving upwards and spreading out.
             withAnimation(Animation.easeOut(duration: upAnimationDuration)) {
                 self.y -= .random(
                     in: screenSize.height * 0.4...screenSize.height * 0.7
@@ -93,18 +96,18 @@ struct ConfettiParticle: View {
                 self.rotation += .degrees(.random(in: -180...180))
             }
 
-            // Animate falling down after reaching the peak
+            // After the upward animation, animate the particle falling down.
             let downAnimationDuration = upAnimationDuration * 1.5
             withAnimation(
                 Animation.easeIn(duration: downAnimationDuration).delay(
                     upAnimationDuration
                 )
             ) {
-                self.y += screenSize.height + 20  // Fall below the screen
+                self.y += screenSize.height + 20  // Fall below the screen to ensure it's hidden.
                 self.rotation += .degrees(.random(in: -180...180))
             }
 
-            // Fade out towards the end of the fall
+            // Fade out the particle as it falls.
             withAnimation(
                 Animation.linear(duration: downAnimationDuration).delay(
                     upAnimationDuration * 1.2

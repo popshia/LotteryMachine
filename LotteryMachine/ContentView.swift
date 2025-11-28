@@ -11,10 +11,10 @@ import SwiftUI
 /// The main view of the app, displaying a list of rewards and their details.
 struct ContentView: View {
     // MARK: - Properties
-    
+
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
-    
+
     /// A query to fetch all rewards from SwiftData, sorted by category and name.
     @Query(sort: [
         SortDescriptor(\Reward.category), SortDescriptor(\Reward.name),
@@ -33,7 +33,7 @@ struct ContentView: View {
     private var sortedCategories: [String] {
         groupedRewards.keys.sorted()
     }
-    
+
     // MARK: - Body
 
     var body: some View {
@@ -67,6 +67,13 @@ struct ContentView: View {
             if let selectedReward {
                 RewardDetailView(
                     reward: selectedReward
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    Image("background")
+                        .resizable()
+                        .scaledToFill()
+                        .opacity(0.3)
                 )
             } else {
                 if rewards.isEmpty {
