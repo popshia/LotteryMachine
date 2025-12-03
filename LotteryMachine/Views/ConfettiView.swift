@@ -70,7 +70,6 @@ struct ConfettiParticle: View {
         // Initialize properties that depend on other instance members here.
         self.isCircle = Bool.random()
 
-        // Since `red` depends on ColorScheme, use a fixed red matching the theme’s light color.
         self.particleColor = [theme.red(for: .light), theme.gold].randomElement()!
     }
 

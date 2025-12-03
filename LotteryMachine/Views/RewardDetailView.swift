@@ -36,8 +36,13 @@ struct RewardDetailView: View {
     /// The audio player for the tick sound effect.
     @State private var tickPlayer: AVAudioPlayer?
 
+    @State private var isHoveringDrawButton = false
+
     /// The theme instance for styling.
     private let theme: SeasonalTheme = ChineseNewYearTheme()
+
+    /// The current color scheme (light/dark mode).
+    @Environment(\.colorScheme) private var colorScheme
 
     /// The columns for the candidate grid.
     let columns = [
@@ -64,12 +69,11 @@ struct RewardDetailView: View {
                             .joined(separator: "    ")
                     )
                     .fontWeight(.bold)
-                    .foregroundColor(.green)
+                    .foregroundColor(.black)
                 }
                 .padding()
-                .breathingBorder(
-                    color: theme.gold,
-                    cornerRadius: 12
+                .breathingContainer(
+                    backgroundColor: .red, borderColor: theme.gold, cornerRadius: 12
                 )
                 .padding()
                 .font(.system(size: 60))
@@ -101,11 +105,33 @@ struct RewardDetailView: View {
                     Text("開始抽獎")
                         .font(.largeTitle)
                         .padding()
-                        .background(isDrawing ? Color.gray : Color.blue)
+                        .background(
+                            ZStack {
+                                LinearGradient(
+                                    colors: [
+                                        theme.red(for: colorScheme),
+                                        theme.darkRed(for: colorScheme),
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+
+                                GoldShimmer(gold: theme.gold)
+                                    .opacity(isDrawing ? 0.35 : 1.0)
+                            }
+                        )
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
                 .buttonStyle(.borderless)
+                .scaleEffect(isHoveringDrawButton ? 1.06 : 1.0)
+                .animation(
+                    .spring(response: 0.25, dampingFraction: 0.75),
+                    value: isHoveringDrawButton
+                )
+                .onHover { hovering in
+                    isHoveringDrawButton = hovering
+                }
                 .disabled(isDrawing || reward.candidates.isEmpty)
                 .padding()
                 Stepper(
@@ -114,6 +140,7 @@ struct RewardDetailView: View {
                     in: 0.5...10,
                     step: 0.5
                 )
+                .font(.title.bold())
                 .padding(.horizontal)
             }
 

@@ -45,26 +45,6 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             VStack {
-                Text("C-LINK · 尾牙抽獎")
-                    .font(.title2.weight(.bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        ZStack {
-                            LinearGradient(
-                                colors: [
-                                    theme.red(for: colorScheme),
-                                    theme.darkRed(for: colorScheme),
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-
-                            GoldShimmer(gold: theme.gold)
-                                .opacity(NSApp?.keyWindow != nil ? 1.0 : 0.35)
-                        }
-                    )
                 // MARK: - Rewards List
                 List(selection: $selectedReward) {
                     ForEach(sortedCategories, id: \.self) { category in
@@ -72,7 +52,7 @@ struct ContentView: View {
                             header: Text(
                                 category.isEmpty ? "Uncategorized" : category
                             )
-                            .font(.title3.weight(.bold))
+                            .font(.title2.weight(.bold))
                             .foregroundStyle(theme.darkRed(for: colorScheme))
                             .padding(.vertical, 6)
                             .padding(.horizontal, 10)
@@ -89,7 +69,7 @@ struct ContentView: View {
                                 HStack {
                                     Label {
                                         Text(reward.name)
-                                            .font(.title2.weight(.semibold))
+                                            .font(.title.weight(.semibold))
                                     } icon: {
                                         Image(systemName: "sparkles")
                                             .foregroundStyle(theme.gold)
@@ -105,34 +85,33 @@ struct ContentView: View {
                 .listStyle(SidebarListStyle())
                 .scrollContentBackground(.hidden)
                 .background(theme.background(for: colorScheme))
+                .shadow(radius: 10)
                 .tint(theme.gold)
             }
             .navigationTitle("Lottery Machine")
         } detail: {
             ZStack {
+                theme.background(for: colorScheme)
+
                 if let selectedReward {
-                    RewardDetailView(
-                        reward: selectedReward
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        Image("background")
-                            .resizable()
-                            .scaledToFill()
-                            .opacity(0.4)
-                    )
+                    RewardDetailView(reward: selectedReward)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    if rewards.isEmpty {
-                        Text("請到設定裡增加尾牙獎項")
-                            .font(.largeTitle)
-                    } else {
-                        Text("請選擇一個獎項以查看詳細資訊")
-                            .font(.largeTitle)
-                    }
+                    let message =
+                        rewards.isEmpty
+                        ? "請到設定裡增加尾牙獎項"
+                        : "請選擇一個獎項以查看詳細資訊"
+
+                    Text(message)
+                        .font(.largeTitle.bold())
+                        .foregroundColor(.primary) // Ensure text color contrasts the ZStack background
                 }
             }
         }
-        .accentColor(theme.gold)
+        .toolbarBackground(
+            theme.background(for: colorScheme).opacity(0.95),
+            for: .windowToolbar
+        )
     }
 }
 
