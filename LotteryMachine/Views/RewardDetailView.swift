@@ -36,6 +36,9 @@ struct RewardDetailView: View {
     /// The audio player for the tick sound effect.
     @State private var tickPlayer: AVAudioPlayer?
 
+    /// The theme instance for styling.
+    private let theme: SeasonalTheme = ChineseNewYearTheme()
+
     /// The columns for the candidate grid.
     let columns = [
         GridItem(.adaptive(minimum: 200))
@@ -46,7 +49,7 @@ struct RewardDetailView: View {
     var body: some View {
         VStack {
             // MARK: - Header
-            Text("\(reward.name) * \(reward.numberOfWinners)位")
+            Text("💵 \(reward.name) * \(reward.numberOfWinners)位 💵")
                 .font(.system(size: 72))
                 .fontWeight(.bold)
                 .padding()
@@ -64,12 +67,10 @@ struct RewardDetailView: View {
                     .foregroundColor(.green)
                 }
                 .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 10).fill(
-                        Color.yellow.opacity(0.2)
-                    )
+                .breathingBorder(
+                    color: theme.gold,
+                    cornerRadius: 12
                 )
-                .padding()
                 .font(.system(size: 60))
                 .transition(.scale)
             }
@@ -95,6 +96,17 @@ struct RewardDetailView: View {
 
             // MARK: - Controls
             HStack {
+                Button(action: drawWinner) {
+                    Text("開始抽獎")
+                        .font(.largeTitle)
+                        .padding()
+                        .background(isDrawing ? Color.gray : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .buttonStyle(.borderless)
+                .disabled(isDrawing || reward.candidates.isEmpty)
+                .padding()
                 Stepper(
                     "抽取秒數: \(String(format: "%.1f", spinningDuration))s",
                     value: $spinningDuration,
@@ -103,18 +115,6 @@ struct RewardDetailView: View {
                 )
                 .padding(.horizontal)
             }
-
-            Button(action: drawWinner) {
-                Text("開始抽獎")
-                    .font(.largeTitle)
-                    .padding()
-                    .background(isDrawing ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .buttonStyle(.borderless)
-            .disabled(isDrawing || reward.candidates.isEmpty)
-            .padding()
 
             Spacer()
         }

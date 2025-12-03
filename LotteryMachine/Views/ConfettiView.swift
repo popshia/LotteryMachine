@@ -26,32 +26,33 @@ struct ConfettiView: View {
 /// A view representing a single particle in the confetti animation.
 struct ConfettiParticle: View {
     // MARK: - State
-    
+
     /// The horizontal position of the particle.
     @State private var x: CGFloat
-    
+
     /// The vertical position of the particle.
     @State private var y: CGFloat
-    
+
     /// The rotation angle of the particle.
     @State private var rotation = Angle.degrees(.random(in: 0...360))
-    
+
     /// The scale of the particle.
     @State private var scale: CGFloat = .random(in: 0.5...1.5)
-    
+
     /// The opacity of the particle.
     @State private var opacity: Double = 1.0
 
+    /// The theme instance for styling.
+    private let theme: SeasonalTheme = ChineseNewYearTheme()
+
     // MARK: - Properties
-    
+
     /// The color of the particle, chosen randomly.
-    let particleColor: Color = [
-        .red, .green, .blue, .yellow, .pink, .purple, .orange,
-    ].randomElement()!
-    
+    let particleColor: Color
+
     /// A boolean indicating whether the particle is a circle or a rectangle.
-    let isCircle: Bool = Bool.random()
-    
+    let isCircle: Bool
+
     /// The duration of the upward animation.
     let upAnimationDuration = Double.random(in: 1...2)
 
@@ -65,10 +66,16 @@ struct ConfettiParticle: View {
         self.screenSize = screenSize
         _x = State(initialValue: screenSize.width / 2)
         _y = State(initialValue: screenSize.height)
+
+        // Initialize properties that depend on other instance members here.
+        self.isCircle = Bool.random()
+
+        // Since `red` depends on ColorScheme, use a fixed red matching the theme’s light color.
+        self.particleColor = [theme.red(for: .light), theme.gold].randomElement()!
     }
 
     // MARK: - Body
-    
+
     var body: some View {
         Group {
             if isCircle {
@@ -103,7 +110,7 @@ struct ConfettiParticle: View {
                     upAnimationDuration
                 )
             ) {
-                self.y += screenSize.height + 20  // Fall below the screen to ensure it's hidden.
+                self.y += screenSize.height + 20 // Fall below the screen to ensure it's hidden.
                 self.rotation += .degrees(.random(in: -180...180))
             }
 

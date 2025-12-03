@@ -34,10 +34,10 @@ struct CandidateCardView: View {
             RoundedRectangle(cornerRadius: 10)
                 .fill(
                     isWinner
-                        ? Color.green.opacity(0.6)
+                        ? Color.red.opacity(0.6)
                         : (isHighlighted
                             ? Color.yellow.opacity(0.8)
-                            : Color.gray.opacity(0.6))
+                            : Color.white.opacity(0.8))
                 )
                 .shadow(
                     color: isHighlighted ? .yellow : .clear,

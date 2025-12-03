@@ -27,6 +27,9 @@ struct ContentView: View {
     /// The currently selected reward in the list.
     @State private var selectedReward: Reward?
 
+    /// The theme instance for styling.
+    private let theme: SeasonalTheme = ChineseNewYearTheme()
+
     /// A computed property that groups rewards by their category.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
@@ -42,6 +45,26 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             VStack {
+                Text("C-LINK · 尾牙抽獎")
+                    .font(.title2.weight(.bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        ZStack {
+                            LinearGradient(
+                                colors: [
+                                    theme.red(for: colorScheme),
+                                    theme.darkRed(for: colorScheme),
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+
+                            GoldShimmer(gold: theme.gold)
+                                .opacity(NSApp?.keyWindow != nil ? 1.0 : 0.35)
+                        }
+                    )
                 // MARK: - Rewards List
                 List(selection: $selectedReward) {
                     ForEach(sortedCategories, id: \.self) { category in
@@ -49,15 +72,30 @@ struct ContentView: View {
                             header: Text(
                                 category.isEmpty ? "Uncategorized" : category
                             )
-                            .font(.title2)
-                            .padding()
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(theme.darkRed(for: colorScheme))
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(theme.red(for: colorScheme).opacity(0.08))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(theme.gold.opacity(0.6), lineWidth: 1)
+                            )
                         ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
                                 HStack {
-                                    Text(reward.name).foregroundStyle(
-                                        !reward.winners.isEmpty ? .green : .primary
-                                    )
-                                    .font(.title)
+                                    Label {
+                                        Text(reward.name)
+                                            .font(.title2.weight(.semibold))
+                                    } icon: {
+                                        Image(systemName: "sparkles")
+                                            .foregroundStyle(theme.gold)
+                                    }
+                                    Image(systemName: "sparkles")
+                                        .foregroundStyle(theme.gold)
                                 }
                                 .tag(reward)
                             }
@@ -65,31 +103,37 @@ struct ContentView: View {
                     }
                 }
                 .listStyle(SidebarListStyle())
+                .scrollContentBackground(.hidden)
+                .background(theme.background(for: colorScheme))
+                .tint(theme.gold)
             }
             .navigationTitle("Lottery Machine")
         } detail: {
-            // MARK: - Detail View
-            if let selectedReward {
-                RewardDetailView(
-                    reward: selectedReward
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    Image("background")
-                        .resizable()
-                        .scaledToFill()
-                        .opacity(0.3)
-                )
-            } else {
-                if rewards.isEmpty {
-                    Text("請到設定裡增加尾牙獎項")
-                        .font(.largeTitle)
+            ZStack {
+                if let selectedReward {
+                    RewardDetailView(
+                        reward: selectedReward
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        Image("background")
+                            .resizable()
+                            .scaledToFill()
+                            .opacity(0.3)
+                    )
                 } else {
-                    Text("請選擇一個獎項以查看詳細資訊")
-                        .font(.largeTitle)
+                    if rewards.isEmpty {
+                        Text("請到設定裡增加尾牙獎項")
+                            .font(.largeTitle)
+                    } else {
+                        Text("請選擇一個獎項以查看詳細資訊")
+                            .font(.largeTitle)
+                    }
                 }
             }
+            //            .background(theme.background(for: colorScheme))
         }
+        .accentColor(theme.gold)
     }
 }
 
