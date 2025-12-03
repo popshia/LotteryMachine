@@ -119,7 +119,7 @@ struct ContentView: View {
                         Image("background")
                             .resizable()
                             .scaledToFill()
-                            .opacity(0.3)
+                            .opacity(0.4)
                     )
                 } else {
                     if rewards.isEmpty {
@@ -131,7 +131,6 @@ struct ContentView: View {
                     }
                 }
             }
-            //            .background(theme.background(for: colorScheme))
         }
         .accentColor(theme.gold)
     }

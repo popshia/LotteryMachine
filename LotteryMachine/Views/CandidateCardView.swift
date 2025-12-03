@@ -37,14 +37,14 @@ struct CandidateCardView: View {
                         ? Color.red.opacity(0.6)
                         : (isHighlighted
                             ? Color.yellow.opacity(0.8)
-                            : Color.white.opacity(0.8))
+                            : Color.white)
                 )
                 .shadow(
                     color: isHighlighted ? .yellow : .clear,
                     radius: isHighlighted ? 10 : 0
                 )
         )
-        .scaleEffect(isHighlighted ? 1.1 : 1.0)
+        .scaleEffect(isHighlighted ? 1.2 : 1.0)
         .animation(.easeInOut, value: isHighlighted)
     }
 }

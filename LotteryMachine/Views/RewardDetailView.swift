@@ -71,6 +71,7 @@ struct RewardDetailView: View {
                     color: theme.gold,
                     cornerRadius: 12
                 )
+                .padding()
                 .font(.system(size: 60))
                 .transition(.scale)
             }
