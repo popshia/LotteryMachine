@@ -11,25 +11,25 @@ import SwiftUI
 /// A view for managing rewards and their candidates.
 struct SettingsView: View {
     // MARK: - Environment and Query
-    
+
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
-    
+
     /// A query to fetch all rewards, sorted by category and name.
     @Query(sort: [SortDescriptor(\Reward.category), SortDescriptor(\Reward.name)])
     private var rewards: [Reward]
 
     // MARK: - State
-    
+
     /// A boolean to control the presentation of the "Add Reward" sheet.
     @State private var isShowingAddRewardSheet = false
 
     /// A boolean to control the presentation of the "Edit Reward" alert.
     @State private var isEditingReward = false
-    
+
     /// The reward currently being edited.
     @State private var rewardToEdit: Reward?
-    
+
     /// The new name for the reward being edited.
     @State private var editingRewardName = ""
 
@@ -37,7 +37,7 @@ struct SettingsView: View {
     @State private var newCandidateName = ""
 
     // MARK: - Computed Properties
-    
+
     /// A dictionary grouping rewards by their category.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
@@ -49,7 +49,7 @@ struct SettingsView: View {
     }
 
     // MARK: - Body
-    
+
     /// The content and behavior of the view.
     var body: some View {
         NavigationView {
@@ -67,12 +67,12 @@ struct SettingsView: View {
                                     Text(reward.name)
                                 }
                                 .contextMenu {
-                                    Button("Edit") {
+                                    Button("編輯") {
                                         rewardToEdit = reward
                                         editingRewardName = reward.name
                                         isEditingReward = true
                                     }
-                                    Button("Delete", role: .destructive) {
+                                    Button("刪除", role: .destructive) {
                                         deleteReward(reward)
                                     }
                                 }
@@ -81,23 +81,23 @@ struct SettingsView: View {
                     }
                 }
                 .listStyle(.sidebar)
-                .alert("Edit Reward", isPresented: $isEditingReward) {
-                    TextField("New Name", text: $editingRewardName)
-                    Button("Save") {
+                .alert("編輯獎項", isPresented: $isEditingReward) {
+                    TextField("獎項名稱", text: $editingRewardName)
+                    Button("儲存") {
                         if let reward = rewardToEdit {
                             editReward(reward: reward, newName: editingRewardName)
                         }
                     }
-                    Button("Cancel", role: .cancel) {}
+                    Button("取消", role: .cancel) {}
                 } message: {
-                    Text("Enter a new name for the reward.")
+                    Text("請輸入新的獎項名稱")
                 }
 
                 // MARK: - Add Reward Button
                 Button(action: {
                     isShowingAddRewardSheet = true
                 }) {
-                    Label("Add Reward", systemImage: "plus")
+                    Label("新增獎項", systemImage: "plus")
                 }
                 .padding()
             }
@@ -116,7 +116,7 @@ struct SettingsView: View {
     }
 
     // MARK: - Private Methods
-    
+
     /// Adds a new reward to the model context.
     ///
     /// - Parameters:
@@ -165,47 +165,47 @@ struct SettingsView: View {
 /// A view for adding a new reward.
 struct AddRewardView: View {
     // MARK: - Bindings and Properties
-    
+
     /// A binding to control the presentation of the view.
     @Binding var isPresented: Bool
-    
+
     /// An array of existing categories to choose from.
     let categories: [String]
-    
+
     /// A closure to be called when the reward is saved.
     let onSave: (String, String) -> Void
 
     // MARK: - State
-    
+
     /// The name of the new reward.
     @State private var name: String = ""
-    
+
     /// The selected category for the new reward.
     @State private var selectedCategory: String = ""
-    
+
     /// A boolean to indicate whether to create a new category.
     @State private var isNewCategory: Bool = false
-    
+
     /// The name of the new category.
     @State private var newCategory: String = ""
 
     // MARK: - Body
-    
+
     /// The content and behavior of the view.
     var body: some View {
         VStack {
-            Text("Add New Reward")
+            Text("增加獎項")
                 .font(.title)
                 .padding()
 
             Form {
-                TextField("Reward Name", text: $name)
-                Toggle("Create new category?", isOn: $isNewCategory.animation())
+                TextField("獎項名稱", text: $name)
+                Toggle("新獎項類別?", isOn: $isNewCategory.animation())
 
                 if isNewCategory {
-                    TextField("New Category Name", text: $newCategory)
+                    TextField("新獎項類別", text: $newCategory)
                 } else {
-                    Picker("Category", selection: $selectedCategory) {
+                    Picker("獎項類別", selection: $selectedCategory) {
                         ForEach(categories.filter { !$0.isEmpty }, id: \.self) { category in
                             Text(category).tag(category)
                         }
@@ -218,14 +218,14 @@ struct AddRewardView: View {
             }.padding()
 
             HStack {
-                Button("Cancel") {
+                Button("取消") {
                     isPresented = false
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
 
-                Button("Save") {
+                Button("儲存") {
                     let finalCategory = isNewCategory ? newCategory : selectedCategory
                     onSave(name, finalCategory)
                     isPresented = false
@@ -243,37 +243,37 @@ struct AddRewardView: View {
 /// A view for managing the candidates of a specific reward.
 struct CandidateDetailView: View {
     // MARK: - Environment and Bindings
-    
+
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
-    
+
     /// The reward whose candidates are being managed.
     @Bindable var reward: Reward
 
     /// A boolean to control the presentation of the "Edit Candidate" alert.
     @State private var isEditingCandidate = false
-    
+
     /// The candidate currently being edited.
     @State private var candidateToEdit: Candidate?
-    
+
     /// The new name for the candidate being edited.
     @State private var editingCandidateName = ""
 
     /// A binding to the new candidate's name from the parent view.
     @Binding var newCandidateName: String
-    
+
     /// A closure to add a new candidate to the reward.
     let addCandidate: (Reward) -> Void
 
     // MARK: - Body
-    
+
     /// The content and behavior of the view.
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {
                 HStack {
                     Stepper(
-                        "Number of Winners: \(reward.numberOfWinners)",
+                        "總共抽取: \(reward.numberOfWinners)",
                         value: $reward.numberOfWinners,
                         in: 1...max(1, reward.candidates.count)
                     )
@@ -286,24 +286,30 @@ struct CandidateDetailView: View {
                         }
                     }
                     .padding()
-                    Button("Reset Winners") {
+                    Button("重置得獎人") {
                         resetWinners(from: reward)
+                    }
+                    Button("匯入名單") {
+                        importCandidatesFromCSV(to: reward)
+                    }
+                    Button("清除名單") {
+                        removeAllCandidates(from: reward)
                     }
                 }
             }
 
-            Section(header: Text("Candidates").font(.title2).fontWeight(.bold)) {
+            Section(header: Text("得獎人").font(.title2).fontWeight(.bold)) {
                 List {
                     ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
                         Text(candidate.name)
                             .foregroundColor(reward.winners.contains(candidate) ? .green : .primary)
                             .contextMenu {
-                                Button("Edit") {
+                                Button("編輯") {
                                     candidateToEdit = candidate
                                     editingCandidateName = candidate.name
                                     isEditingCandidate = true
                                 }
-                                Button("Delete", role: .destructive) {
+                                Button("刪除", role: .destructive) {
                                     deleteCandidate(candidate, from: reward)
                                 }
                             }
@@ -312,7 +318,7 @@ struct CandidateDetailView: View {
             }
 
             HStack {
-                TextField("New Candidate", text: $newCandidateName)
+                TextField("新抽獎人", text: $newCandidateName)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { addCandidate(reward) }
             }
@@ -321,9 +327,9 @@ struct CandidateDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .navigationTitle("Candidates")
-        .alert("Enter a new name", isPresented: $isEditingCandidate) {
-            TextField("New Name", text: $editingCandidateName)
-            Button("Save") {
+        .alert("輸入名字", isPresented: $isEditingCandidate) {
+            TextField("同仁名字", text: $editingCandidateName)
+            Button("儲存") {
                 if let candidate = candidateToEdit {
                     editCandidate(candidate: candidate, newName: editingCandidateName)
                 }
@@ -334,7 +340,7 @@ struct CandidateDetailView: View {
     }
 
     // MARK: - Private Methods
-    
+
     /// Resets the list of winners for the reward.
     ///
     /// - Parameter reward: The reward to reset.
@@ -345,20 +351,6 @@ struct CandidateDetailView: View {
                 try modelContext.save()
             } catch {
                 print("Failed to save edited candidate: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    /// Deletes candidates at the specified offsets.
-    ///
-    /// - Parameter offsets: The index set of candidates to delete.
-    private func deleteCandidates(offsets: IndexSet) {
-        withAnimation {
-            // Need to map offsets to the sorted array
-            let sortedCandidates = reward.candidates.sorted(by: { $0.name < $1.name })
-            offsets.forEach { index in
-                let candidateToDelete = sortedCandidates[index]
-                modelContext.delete(candidateToDelete)
             }
         }
     }
@@ -388,6 +380,57 @@ struct CandidateDetailView: View {
                 reward.candidates.remove(at: index)
             }
             modelContext.delete(candidate)
+        }
+    }
+
+    /// Imports candidates from a CSV file into the provided reward.
+    ///
+    /// - Parameter reward: The reward to which candidates will be added.
+    private func importCandidatesFromCSV(to reward: Reward) {
+        guard let filepath = Bundle.main.path(forResource: "candidates", ofType: "csv") else {
+            print("candidates.csv not found")
+            return
+        }
+
+        do {
+            let contents = try String(contentsOfFile: filepath, encoding: .utf8)
+            let lines = contents.components(separatedBy: .newlines)
+
+            // Skip the header row if it exists
+            let dataLines = lines.dropFirst()
+
+            var existingCandidateNames = Set(reward.candidates.map { $0.name })
+
+            for line in dataLines {
+                let columns = line.components(separatedBy: ",")
+                if columns.count > 4,
+                    !columns[4].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                    let candidateName = columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingCandidateNames.contains(candidateName) {
+                        let newCandidate = Candidate(name: candidateName)
+                        reward.candidates.append(newCandidate)
+                        existingCandidateNames.insert(candidateName)
+                    }
+                }
+            }
+            try modelContext.save()
+        } catch {
+            print("Error reading or parsing CSV file: \(error.localizedDescription)")
+        }
+    }
+
+    /// Removes all candidates from the reward.
+    ///
+    /// - Parameter reward: The reward from which to remove all candidates.
+    private func removeAllCandidates(from reward: Reward) {
+        withAnimation {
+            reward.candidates.removeAll()
+            do {
+                try modelContext.save()
+            } catch {
+                print("Failed to save after removing all candidates: \(error.localizedDescription)")
+            }
         }
     }
 }

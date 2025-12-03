@@ -56,6 +56,7 @@ struct LotteryMachineApp: App {
         #if os(macOS)
             Settings {
                 SettingsView()
+                    .preferredColorScheme(.light)
                     .modelContainer(sharedModelContainer)
             }
         #endif

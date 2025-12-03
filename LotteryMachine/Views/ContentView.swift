@@ -107,7 +107,17 @@ struct ContentView: View {
                         .foregroundColor(.primary) // Ensure text color contrasts the ZStack background
                 }
             }
+            //        } detail: {
+            //            ZStack {
+            //                theme.background(for: colorScheme)
+            //
+            //                Text("等值商品如下")
+            //                    .font(.largeTitle.bold())
+            //                    .foregroundColor(.primary) // Ensure text color contrasts the ZStack background
+            //            }
+            //            .scrollContentBackground(.hidden)
         }
+        .navigationSplitViewStyle(.balanced)
         .toolbarBackground(
             theme.background(for: colorScheme).opacity(0.95),
             for: .windowToolbar
