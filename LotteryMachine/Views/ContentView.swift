@@ -10,13 +10,15 @@ import SwiftUI
 
 /// The main view of the app, displaying a list of rewards and their details.
 struct ContentView: View {
-    // MARK: - Properties
+    // MARK: - Environment
 
-    /// The SwiftData model context.
+    /// The SwiftData model context, used for interacting with the data store.
     @Environment(\.modelContext) private var modelContext
 
-    /// The current color scheme (light/dark mode).
+    /// The current color scheme (light/dark mode), used for theme adjustments.
     @Environment(\.colorScheme) private var colorScheme
+
+    // MARK: - Data
 
     /// A query to fetch all rewards from SwiftData, sorted by category and name.
     @Query(sort: [
@@ -27,10 +29,12 @@ struct ContentView: View {
     /// The currently selected reward in the list.
     @State private var selectedReward: Reward?
 
-    /// The theme instance for styling.
+    // MARK: - Properties
+
+    /// The theme instance for styling the view.
     private let theme: SeasonalTheme = ChineseNewYearTheme()
 
-    /// A computed property that groups rewards by their category.
+    /// A computed property that groups rewards by their category for display.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
     }
@@ -44,14 +48,13 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            VStack {
-                // MARK: - Rewards List
-                List(selection: $selectedReward) {
-                    ForEach(sortedCategories, id: \.self) { category in
-                        Section(
-                            header: Text(
-                                category.isEmpty ? "Uncategorized" : category
-                            )
+            // MARK: Rewards List
+            List(selection: $selectedReward) {
+                ForEach(sortedCategories, id: \.self) { category in
+                    Section(
+                        header:
+                        // Section header with category name
+                        Text(category.isEmpty ? "Uncategorized" : category)
                             .font(.title2.weight(.bold))
                             .foregroundStyle(theme.darkRed(for: colorScheme))
                             .padding(.vertical, 6)
@@ -64,39 +67,42 @@ struct ContentView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(theme.gold.opacity(0.6), lineWidth: 1)
                             )
-                        ) {
-                            ForEach(groupedRewards[category] ?? []) { reward in
-                                HStack {
-                                    Label {
-                                        Text(reward.name)
-                                            .font(.title.weight(.semibold))
-                                    } icon: {
-                                        Image(systemName: "sparkles")
-                                            .foregroundStyle(theme.gold)
-                                    }
+                    ) {
+                        ForEach(groupedRewards[category] ?? []) { reward in
+                            // Reward item in the list
+                            HStack {
+                                Label {
+                                    Text(reward.name)
+                                        .font(.title.weight(.semibold))
+                                } icon: {
                                     Image(systemName: "sparkles")
                                         .foregroundStyle(theme.gold)
                                 }
-                                .tag(reward)
                             }
+                            .tag(reward)
                         }
                     }
                 }
-                .listStyle(SidebarListStyle())
-                .scrollContentBackground(.hidden)
-                .background(theme.background(for: colorScheme))
-                .shadow(radius: 10)
-                .tint(theme.gold)
             }
+            .listStyle(SidebarListStyle())
+            .scrollContentBackground(.hidden) // Hide default list background
+            .background(theme.background(for: colorScheme))
+            .shadow(radius: 10)
+            .tint(theme.gold) // Set the accent color for the list
             .navigationTitle("Lottery Machine")
         } detail: {
+            // MARK: Detail View
             ZStack {
+                // Background for the detail view
                 theme.background(for: colorScheme)
+                    .ignoresSafeArea()
 
                 if let selectedReward {
+                    // Display the detail view for the selected reward
                     RewardDetailView(reward: selectedReward)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
+                    // Placeholder text when no reward is selected
                     let message =
                         rewards.isEmpty
                         ? "請到設定裡增加尾牙獎項"
@@ -104,18 +110,9 @@ struct ContentView: View {
 
                     Text(message)
                         .font(.largeTitle.bold())
-                        .foregroundColor(.primary) // Ensure text color contrasts the ZStack background
+                        .foregroundColor(.primary)
                 }
             }
-            //        } detail: {
-            //            ZStack {
-            //                theme.background(for: colorScheme)
-            //
-            //                Text("等值商品如下")
-            //                    .font(.largeTitle.bold())
-            //                    .foregroundColor(.primary) // Ensure text color contrasts the ZStack background
-            //            }
-            //            .scrollContentBackground(.hidden)
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(
@@ -125,49 +122,56 @@ struct ContentView: View {
     }
 }
 
+
 // MARK: - Preview
 
-#Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(
-            for: Reward.self,
-            Candidate.self,
-            configurations: config
-        )
+#if DEBUG
+    struct ContentView_Previews: PreviewProvider {
+        static var previews: some View {
+            do {
+                let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                let container = try ModelContainer(
+                    for: Reward.self,
+                    Candidate.self,
+                    configurations: config
+                )
 
-        let reward1 = Reward(
-            name: "Christmas Bonus",
-            category: "Holiday",
-            numberOfWinners: 2
-        )
-        reward1.candidates.append(Candidate(name: "Noah"))
-        reward1.candidates.append(Candidate(name: "Liam"))
-        reward1.candidates.append(Candidate(name: "Emma"))
+                // Create sample data for the preview
+                let reward1 = Reward(
+                    name: "Christmas Bonus",
+                    category: "Holiday",
+                    numberOfWinners: 2
+                )
+                reward1.candidates.append(Candidate(name: "Noah"))
+                reward1.candidates.append(Candidate(name: "Liam"))
+                reward1.candidates.append(Candidate(name: "Emma"))
 
-        let reward2 = Reward(
-            name: "Holiday Raffle",
-            category: "Holiday",
-            numberOfWinners: 1
-        )
-        reward2.candidates.append(Candidate(name: "Olivia"))
-        reward2.candidates.append(Candidate(name: "William"))
+                let reward2 = Reward(
+                    name: "Holiday Raffle",
+                    category: "Holiday",
+                    numberOfWinners: 1
+                )
+                reward2.candidates.append(Candidate(name: "Olivia"))
+                reward2.candidates.append(Candidate(name: "William"))
 
-        let reward3 = Reward(
-            name: "Q1 Bonus",
-            category: "Quarterly",
-            numberOfWinners: 1
-        )
+                let reward3 = Reward(
+                    name: "Q1 Bonus",
+                    category: "Quarterly",
+                    numberOfWinners: 1
+                )
 
-        container.mainContext.insert(reward1)
-        container.mainContext.insert(reward2)
-        container.mainContext.insert(reward3)
+                // Insert sample data into the container
+                container.mainContext.insert(reward1)
+                container.mainContext.insert(reward2)
+                container.mainContext.insert(reward3)
 
-        return ContentView()
-            .modelContainer(container)
-    } catch {
-        fatalError(
-            "Failed to create ModelContainer for Preview: \(error.localizedDescription)"
-        )
+                return ContentView()
+                    .modelContainer(container)
+            } catch {
+                fatalError(
+                    "Failed to create ModelContainer for Preview: \(error.localizedDescription)"
+                )
+            }
+        }
     }
-}
+#endif

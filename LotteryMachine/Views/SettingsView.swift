@@ -12,7 +12,7 @@ import SwiftUI
 struct SettingsView: View {
     // MARK: - Environment and Query
 
-    /// The SwiftData model context.
+    /// The SwiftData model context for database operations.
     @Environment(\.modelContext) private var modelContext
 
     /// A query to fetch all rewards, sorted by category and name.
@@ -21,10 +21,10 @@ struct SettingsView: View {
 
     // MARK: - State
 
-    /// A boolean to control the presentation of the "Add Reward" sheet.
+    /// Controls the presentation of the "Add Reward" sheet.
     @State private var isShowingAddRewardSheet = false
 
-    /// A boolean to control the presentation of the "Edit Reward" alert.
+    /// Controls the presentation of the "Edit Reward" alert.
     @State private var isEditingReward = false
 
     /// The reward currently being edited.
@@ -33,12 +33,12 @@ struct SettingsView: View {
     /// The new name for the reward being edited.
     @State private var editingRewardName = ""
 
-    /// The name for a new candidate, passed to the detail view.
+    /// The name for a new candidate, shared with the detail view.
     @State private var newCandidateName = ""
 
     // MARK: - Computed Properties
 
-    /// A dictionary grouping rewards by their category.
+    /// A dictionary grouping rewards by their category for organized display.
     private var groupedRewards: [String: [Reward]] {
         Dictionary(grouping: rewards, by: { $0.category })
     }
@@ -50,11 +50,10 @@ struct SettingsView: View {
 
     // MARK: - Body
 
-    /// The content and behavior of the view.
     var body: some View {
         NavigationView {
             VStack {
-                // MARK: - Rewards List
+                // MARK: Rewards List
                 List {
                     ForEach(sortedCategories, id: \.self) { category in
                         Section(header: Text(category.isEmpty ? "Uncategorized" : category)) {
@@ -93,7 +92,7 @@ struct SettingsView: View {
                     Text("請輸入新的獎項名稱")
                 }
 
-                // MARK: - Add Reward Button
+                // MARK: Add Reward Button
                 Button(action: {
                     isShowingAddRewardSheet = true
                 }) {
@@ -117,7 +116,7 @@ struct SettingsView: View {
 
     // MARK: - Private Methods
 
-    /// Adds a new reward to the model context.
+    /// Adds a new reward to the database.
     ///
     /// - Parameters:
     ///   - name: The name of the new reward.
@@ -128,7 +127,7 @@ struct SettingsView: View {
         modelContext.insert(newReward)
     }
 
-    /// Edits the name of an existing reward.
+    /// Updates the name of an existing reward.
     ///
     /// - Parameters:
     ///   - reward: The reward to edit.
@@ -142,7 +141,7 @@ struct SettingsView: View {
         }
     }
 
-    /// Deletes a reward from the model context.
+    /// Deletes a reward from the database.
     ///
     /// - Parameter reward: The reward to delete.
     private func deleteReward(_ reward: Reward) {
@@ -151,47 +150,48 @@ struct SettingsView: View {
         }
     }
 
-    /// Adds a new candidate to a reward.
+    /// Adds a new candidate to a specific reward.
     ///
     /// - Parameter reward: The reward to which the candidate will be added.
     private func addCandidate(to reward: Reward) {
         guard !newCandidateName.isEmpty else { return }
         let newCandidate = Candidate(name: newCandidateName)
         reward.candidates.append(newCandidate)
-        newCandidateName = "" // Clear the shared text field
+        newCandidateName = "" // Clear the shared text field after adding
     }
 }
 
-/// A view for adding a new reward.
+// MARK: - AddRewardView
+
+/// A view for adding a new reward, presented as a sheet.
 struct AddRewardView: View {
-    // MARK: - Bindings and Properties
+    // MARK: Bindings and Properties
 
     /// A binding to control the presentation of the view.
     @Binding var isPresented: Bool
 
-    /// An array of existing categories to choose from.
+    /// A list of existing categories to choose from.
     let categories: [String]
 
-    /// A closure to be called when the reward is saved.
+    /// A closure to execute when the reward is saved.
     let onSave: (String, String) -> Void
 
-    // MARK: - State
+    // MARK: State
 
     /// The name of the new reward.
     @State private var name: String = ""
 
-    /// The selected category for the new reward.
+    /// The selected existing category for the new reward.
     @State private var selectedCategory: String = ""
 
-    /// A boolean to indicate whether to create a new category.
+    /// Indicates whether to create a new category instead of choosing an existing one.
     @State private var isNewCategory: Bool = false
 
-    /// The name of the new category.
+    /// The name of the new category, if `isNewCategory` is true.
     @State private var newCategory: String = ""
 
-    // MARK: - Body
+    // MARK: Body
 
-    /// The content and behavior of the view.
     var body: some View {
         VStack {
             Text("增加獎項")
@@ -211,7 +211,7 @@ struct AddRewardView: View {
                         }
                     }
                     .onAppear {
-                        // Select the first available category by default
+                        // Default to the first available category
                         selectedCategory = categories.first(where: { !$0.isEmpty }) ?? ""
                     }
                 }
@@ -240,9 +240,11 @@ struct AddRewardView: View {
     }
 }
 
+// MARK: - CandidateDetailView
+
 /// A view for managing the candidates of a specific reward.
 struct CandidateDetailView: View {
-    // MARK: - Environment and Bindings
+    // MARK: Environment and Bindings
 
     /// The SwiftData model context.
     @Environment(\.modelContext) private var modelContext
@@ -250,7 +252,7 @@ struct CandidateDetailView: View {
     /// The reward whose candidates are being managed.
     @Bindable var reward: Reward
 
-    /// A boolean to control the presentation of the "Edit Candidate" alert.
+    /// Controls the presentation of the "Edit Candidate" alert.
     @State private var isEditingCandidate = false
 
     /// The candidate currently being edited.
@@ -265,9 +267,8 @@ struct CandidateDetailView: View {
     /// A closure to add a new candidate to the reward.
     let addCandidate: (Reward) -> Void
 
-    // MARK: - Body
+    // MARK: Body
 
-    /// The content and behavior of the view.
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {
@@ -279,26 +280,17 @@ struct CandidateDetailView: View {
                     )
                     .disabled(reward.candidates.isEmpty)
                     .onChange(of: reward.numberOfWinners) {
-                        do {
-                            try modelContext.save()
-                        } catch {
-                            print("Failed to save number of winners: \(error)")
-                        }
+                        saveChanges()
                     }
                     .padding()
-                    Button("重置得獎人") {
-                        resetWinners(from: reward)
-                    }
-                    Button("匯入名單") {
-                        importCandidatesFromCSV(to: reward)
-                    }
-                    Button("清除名單") {
-                        removeAllCandidates(from: reward)
-                    }
+
+                    Button("重置得獎人") { resetWinners(from: reward) }
+                    Button("匯入名單") { importCandidatesFromCSV(to: reward) }
+                    Button("清除名單") { removeAllCandidates(from: reward) }
                 }
             }
 
-            Section(header: Text("得獎人").font(.title2).fontWeight(.bold)) {
+            Section(header: Text("候選人名單").font(.title2).fontWeight(.bold)) {
                 List {
                     ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
                         Text(candidate.name)
@@ -322,7 +314,6 @@ struct CandidateDetailView: View {
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { addCandidate(reward) }
             }
-
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -335,11 +326,19 @@ struct CandidateDetailView: View {
                 }
             }
             Button("Cancel", role: .cancel) {}
-        } message: {
-        }
+        } message: {}
     }
 
     // MARK: - Private Methods
+
+    /// Saves any pending changes to the model context.
+    private func saveChanges() {
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save changes: \(error.localizedDescription)")
+        }
+    }
 
     /// Resets the list of winners for the reward.
     ///
@@ -347,26 +346,18 @@ struct CandidateDetailView: View {
     private func resetWinners(from reward: Reward) {
         withAnimation {
             reward.winners.removeAll()
-            do {
-                try modelContext.save()
-            } catch {
-                print("Failed to save edited candidate: \(error.localizedDescription)")
-            }
+            saveChanges()
         }
     }
 
-    /// Edits the name of a candidate.
+    /// Updates the name of a candidate.
     ///
     /// - Parameters:
     ///   - candidate: The candidate to edit.
     ///   - newName: The new name for the candidate.
     private func editCandidate(candidate: Candidate, newName: String) {
         candidate.name = newName
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save edited candidate: \(error.localizedDescription)")
-        }
+        saveChanges()
     }
 
     /// Deletes a candidate from a reward.
@@ -378,12 +369,13 @@ struct CandidateDetailView: View {
         withAnimation {
             if let index = reward.candidates.firstIndex(where: { $0.id == candidate.id }) {
                 reward.candidates.remove(at: index)
+                modelContext.delete(candidate)
+                saveChanges()
             }
-            modelContext.delete(candidate)
         }
     }
 
-    /// Imports candidates from a CSV file into the provided reward.
+    /// Imports candidates from a "candidates.csv" file in the app bundle.
     ///
     /// - Parameter reward: The reward to which candidates will be added.
     private func importCandidatesFromCSV(to reward: Reward) {
@@ -395,18 +387,13 @@ struct CandidateDetailView: View {
         do {
             let contents = try String(contentsOfFile: filepath, encoding: .utf8)
             let lines = contents.components(separatedBy: .newlines)
-
-            // Skip the header row if it exists
-            let dataLines = lines.dropFirst()
+            let dataLines = lines.dropFirst() // Skip header row
 
             var existingCandidateNames = Set(reward.candidates.map { $0.name })
 
             for line in dataLines {
                 let columns = line.components(separatedBy: ",")
-                if columns.count > 4,
-                    !columns[4].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                {
-                    let candidateName = columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
+                if columns.count > 4, let candidateName = columns.last?.trimmingCharacters(in: .whitespacesAndNewlines), !candidateName.isEmpty {
                     if !existingCandidateNames.contains(candidateName) {
                         let newCandidate = Candidate(name: candidateName)
                         reward.candidates.append(newCandidate)
@@ -414,7 +401,7 @@ struct CandidateDetailView: View {
                     }
                 }
             }
-            try modelContext.save()
+            saveChanges()
         } catch {
             print("Error reading or parsing CSV file: \(error.localizedDescription)")
         }
@@ -422,44 +409,50 @@ struct CandidateDetailView: View {
 
     /// Removes all candidates from the reward.
     ///
-    /// - Parameter reward: The reward from which to remove all candidates.
+    /// - Parameter reward: The reward to clear of candidates.
     private func removeAllCandidates(from reward: Reward) {
         withAnimation {
-            reward.candidates.removeAll()
-            do {
-                try modelContext.save()
-            } catch {
-                print("Failed to save after removing all candidates: \(error.localizedDescription)")
+            // Deleting each candidate individually to ensure SwiftData tracks changes
+            for candidate in reward.candidates {
+                modelContext.delete(candidate)
             }
+            reward.candidates.removeAll()
+            saveChanges()
         }
     }
 }
 
 // MARK: - Preview
 
-#Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: Reward.self, Candidate.self, configurations: config)
+#if DEBUG
+    struct SettingsView_Previews: PreviewProvider {
+        static var previews: some View {
+            do {
+                let config = ModelConfiguration(isStoredInMemoryOnly: true)
+                let container = try ModelContainer(for: Reward.self, Candidate.self, configurations: config)
 
-        let reward1 = Reward(name: "Christmas Bonus", category: "Holiday", numberOfWinners: 2)
-        reward1.candidates.append(Candidate(name: "Noah"))
-        reward1.candidates.append(Candidate(name: "Liam"))
-        reward1.candidates.append(Candidate(name: "Emma"))
+                // Sample data for preview
+                let reward1 = Reward(name: "Christmas Bonus", category: "Holiday", numberOfWinners: 2)
+                reward1.candidates.append(Candidate(name: "Noah"))
+                reward1.candidates.append(Candidate(name: "Liam"))
+                reward1.candidates.append(Candidate(name: "Emma"))
 
-        let reward2 = Reward(name: "Holiday Raffle", category: "Holiday", numberOfWinners: 1)
-        reward2.candidates.append(Candidate(name: "Olivia"))
-        reward2.candidates.append(Candidate(name: "William"))
+                let reward2 = Reward(name: "Holiday Raffle", category: "Holiday", numberOfWinners: 1)
+                reward2.candidates.append(Candidate(name: "Olivia"))
+                reward2.candidates.append(Candidate(name: "William"))
 
-        let reward3 = Reward(name: "Q1 Bonus", category: "Quarterly", numberOfWinners: 1)
+                let reward3 = Reward(name: "Q1 Bonus", category: "Quarterly", numberOfWinners: 1)
 
-        container.mainContext.insert(reward1)
-        container.mainContext.insert(reward2)
-        container.mainContext.insert(reward3)
+                // Insert data into the context
+                container.mainContext.insert(reward1)
+                container.mainContext.insert(reward2)
+                container.mainContext.insert(reward3)
 
-        return SettingsView()
-            .modelContainer(container)
-    } catch {
-        fatalError("Failed to create ModelContainer for Preview: \(error.localizedDescription)")
+                return SettingsView()
+                    .modelContainer(container)
+            } catch {
+                fatalError("Failed to create ModelContainer for Preview: \(error.localizedDescription)")
+            }
+        }
     }
-}
+#endif

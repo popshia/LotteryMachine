@@ -13,43 +13,52 @@ import SwiftUI
 struct RewardDetailView: View {
     // MARK: - Properties
 
-    /// The reward to display.
+    /// The reward being displayed.
     var reward: Reward
 
+    /// A query to fetch all rewards from SwiftData. This is used to remove winners from other reward categories.
     @Query private var allRewards: [Reward]
 
+    /// The SwiftData model context, used for saving changes.
     @Environment(\.modelContext) private var modelContext
 
-    /// A boolean indicating whether the winner drawing animation is in progress.
+    // MARK: - State
+
+    /// Indicates whether the winner drawing animation is in progress.
     @State private var isDrawing = false
 
     /// The candidate currently being highlighted during the drawing animation.
     @State private var highlightedCandidate: Candidate?
 
-    /// The duration of the spinning animation for each winner.
+    /// The duration of the spinning animation for each winner, adjustable by the user.
     @State private var spinningDuration = 1.0
 
-    /// A list of IDs to trigger confetti bursts.
+    /// A list of IDs to trigger confetti bursts, each corresponding to a win event.
     @State private var confettiBursts: [UUID] = []
 
-    /// The audio player for the spinning sound effect.
-    @State private var spinningPlayer: AVAudioPlayer?
-
-    /// The audio player for the finish sound effect.
-    @State private var finishPlayer: AVAudioPlayer?
-
-    /// The audio player for the tick sound effect.
-    @State private var tickPlayer: AVAudioPlayer?
-
+    /// Indicates whether the user is hovering over the draw button, used for visual feedback.
     @State private var isHoveringDrawButton = false
 
-    /// The theme instance for styling.
+    // MARK: - Audio
+
+    /// The audio player for the continuous spinning sound effect.
+    @State private var spinningPlayer: AVAudioPlayer?
+
+    /// The audio player for the sound effect when a winner is announced.
+    @State private var finishPlayer: AVAudioPlayer?
+
+    /// The audio player for the ticking sound during the highlight phase.
+    @State private var tickPlayer: AVAudioPlayer?
+
+    // MARK: - Styling
+
+    /// The theme instance for styling the view.
     private let theme: SeasonalTheme = ChineseNewYearTheme()
 
     /// The current color scheme (light/dark mode).
     @Environment(\.colorScheme) private var colorScheme
 
-    /// The columns for the candidate grid.
+    /// The columns for the candidate grid, making the layout adaptive.
     let columns = [
         GridItem(.adaptive(minimum: 200))
     ]
@@ -58,13 +67,13 @@ struct RewardDetailView: View {
 
     var body: some View {
         VStack {
-            // MARK: - Header
+            // MARK: Header
             Text("💵 \(reward.name) * \(reward.numberOfWinners)位 💵")
                 .font(.system(size: 72))
                 .fontWeight(.bold)
                 .padding()
 
-            // MARK: - Winners Display
+            // MARK: Winners Display
             if !reward.winners.isEmpty {
                 VStack {
                     Text("🎉 中獎者 🎉")
@@ -85,7 +94,7 @@ struct RewardDetailView: View {
                 .transition(.scale)
             }
 
-            // MARK: - Candidates Grid
+            // MARK: Candidates Grid
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(
@@ -104,7 +113,7 @@ struct RewardDetailView: View {
                 .padding()
             }
 
-            // MARK: - Controls
+            // MARK: Controls
             HStack {
                 Button(action: drawWinner) {
                     Text("開始抽獎")
@@ -153,6 +162,7 @@ struct RewardDetailView: View {
         }
         .navigationTitle("C-Link 尾牙抽獎")
         .overlay(
+            // Display confetti bursts when winners are drawn.
             ForEach(confettiBursts, id: \.self) { id in
                 ConfettiView()
                     .allowsHitTesting(false)
@@ -169,6 +179,8 @@ struct RewardDetailView: View {
     // MARK: - Private Methods
 
     /// Returns a random element from an array, ensuring it's different from the provided element.
+    ///
+    /// This is used during the spinning animation to prevent highlighting the same candidate consecutively.
     ///
     /// - Parameters:
     ///   - array: The array to select from.
@@ -193,6 +205,7 @@ struct RewardDetailView: View {
 
         /// Recursively draws the next winner until the desired number of winners is reached.
         func drawNextWinner() {
+            // Stop if enough winners have been drawn or if there are no more candidates.
             if reward.winners.count >= reward.numberOfWinners
                 || availableCandidates.isEmpty
             {
@@ -200,14 +213,14 @@ struct RewardDetailView: View {
                 stopSound(spinningPlayer)
                 spinningPlayer = nil
                 finishPlayer = playSound(named: "finish.mp3")
-                confettiBursts.append(UUID())
+                confettiBursts.append(UUID()) // Trigger confetti
                 return
             }
 
             let highlightDelay = 0.1
             let numberOfHighlights = Int(spinningDuration / highlightDelay)
 
-            // Animation of highlighting candidates
+            // Animate highlighting different candidates before selecting a winner.
             for i in 0..<numberOfHighlights {
                 DispatchQueue.main.asyncAfter(
                     deadline: .now() + Double(i) * highlightDelay
@@ -221,32 +234,35 @@ struct RewardDetailView: View {
                 }
             }
 
-            // Select the winner after the animation
+            // Select the winner after the animation.
             DispatchQueue.main.asyncAfter(deadline: .now() + spinningDuration) {
                 guard let winner = availableCandidates.randomElement() else {
                     isDrawing = false
                     return
                 }
 
+                // Remove the winner from the list of available candidates for this reward.
                 availableCandidates.removeAll { $0.id == winner.id }
 
                 withAnimation(.spring()) {
                     reward.winners.append(winner)
                     highlightedCandidate = nil
-                    playTick()
+                    playTick() // Play a sound for the selection
                 }
 
+                // Remove the winner from all other rewards to prevent winning multiple times.
                 for otherReward in allRewards where otherReward.id != reward.id {
                     otherReward.candidates.removeAll { $0.name == winner.name }
                 }
 
+                // Save the changes to SwiftData.
                 do {
                     try modelContext.save()
                 } catch {
                     print("Failed to save context: \(error)")
                 }
 
-                // Draw the next winner after a short delay
+                // Draw the next winner after a short delay.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     drawNextWinner()
                 }
@@ -288,8 +304,9 @@ struct RewardDetailView: View {
         }
     }
 
-    /// Plays the tick sound effect.
+    /// Plays the tick sound effect. This is reused to avoid re-initializing the player.
     private func playTick() {
+        // Initialize the player if it hasn't been already.
         if tickPlayer == nil {
             guard let url = Bundle.main.url(forResource: "tick.mp3", withExtension: nil) else {
                 return
@@ -299,6 +316,7 @@ struct RewardDetailView: View {
             tickPlayer?.prepareToPlay()
         }
 
+        // Play the sound from the beginning.
         tickPlayer?.currentTime = 0
         tickPlayer?.play()
     }
