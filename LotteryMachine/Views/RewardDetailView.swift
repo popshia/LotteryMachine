@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import SwiftData
 import SwiftUI
 
 /// A view that displays the details of a reward, including the candidates and the winner drawing animation.
@@ -14,6 +15,10 @@ struct RewardDetailView: View {
 
     /// The reward to display.
     var reward: Reward
+
+    @Query private var allRewards: [Reward]
+
+    @Environment(\.modelContext) private var modelContext
 
     /// A boolean indicating whether the winner drawing animation is in progress.
     @State private var isDrawing = false
@@ -229,6 +234,16 @@ struct RewardDetailView: View {
                     reward.winners.append(winner)
                     highlightedCandidate = nil
                     playTick()
+                }
+
+                for otherReward in allRewards where otherReward.id != reward.id {
+                    otherReward.candidates.removeAll { $0.name == winner.name }
+                }
+
+                do {
+                    try modelContext.save()
+                } catch {
+                    print("Failed to save context: \(error)")
                 }
 
                 // Draw the next winner after a short delay
