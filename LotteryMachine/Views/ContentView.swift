@@ -53,8 +53,8 @@ struct ContentView: View {
                 ForEach(sortedCategories, id: \.self) { category in
                     Section(
                         header:
-                        // Section header with category name
-                        Text(category.isEmpty ? "Uncategorized" : category)
+                            // Section header with category name
+                            Text(category.isEmpty ? "Uncategorized" : category)
                             .font(.title2.weight(.bold))
                             .foregroundStyle(theme.darkRed(for: colorScheme))
                             .padding(.vertical, 6)
@@ -67,17 +67,24 @@ struct ContentView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(theme.gold.opacity(0.6), lineWidth: 1)
                             )
+                            .padding(.vertical, 6)
                     ) {
                         ForEach(groupedRewards[category] ?? []) { reward in
                             // Reward item in the list
                             HStack {
-                                Label {
-                                    Text(reward.name)
-                                        .font(.title.weight(.semibold))
-                                } icon: {
-                                    Image(systemName: "sparkles")
-                                        .foregroundStyle(theme.gold)
-                                }
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(theme.gold)
+                                Text(reward.name)
+                                    .font(.title.weight(.semibold))
+                                Image(systemName: "sparkles")
+                                    .foregroundStyle(theme.gold)
+                                // Label {
+                                //     Text(reward.name)
+                                //         .font(.title.weight(.semibold))
+                                // } icon: {
+                                //     Image(systemName: "sparkles")
+                                //         .foregroundStyle(theme.gold)
+                                // }
                             }
                             .tag(reward)
                         }
@@ -121,7 +128,6 @@ struct ContentView: View {
         )
     }
 }
-
 
 // MARK: - Preview
 
