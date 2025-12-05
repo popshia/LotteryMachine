@@ -97,8 +97,8 @@ struct ContentView: View {
             .shadow(radius: 10)
             .tint(theme.gold) // Set the accent color for the list
             .navigationTitle("Lottery Machine")
-        } detail: {
-            // MARK: Detail View
+        } content: {
+            // MARK: Content View
             ZStack {
                 // Background for the detail view
                 theme.background(for: colorScheme)
@@ -120,6 +120,11 @@ struct ContentView: View {
                         .foregroundColor(.primary)
                 }
             }
+        } detail: {
+            // MARK: Detail View
+            Text("等值商品可參考如下")
+                .font(.largeTitle.bold())
+                .foregroundColor(.primary)
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(
