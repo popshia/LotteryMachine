@@ -88,20 +88,20 @@ struct ChineseNewYearTheme: SeasonalTheme {
 /// if the user has enabled "Reduce Motion" or if the app is not in the active scene phase.
 struct GoldShimmer: View {
     // MARK: Environment
-    
+
     /// An environment property to check if "Reduce Motion" is enabled in accessibility settings.
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    
+
     /// An environment property to track the current phase of the scene (e.g., active, inactive).
     @Environment(\.scenePhase) private var scenePhase
 
     // MARK: Properties
-    
+
     /// The gold color to use for the shimmer effect.
     let gold: Color
 
     // MARK: Body
-    
+
     var body: some View {
         if reduceMotion || scenePhase != .active {
             Color.clear

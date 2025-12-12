@@ -14,18 +14,18 @@ import SwiftData
 class Reward {
     /// The name of the reward.
     var name: String
-    
+
     /// The category of the reward (e.g., "Holiday", "Quarterly").
     var category: String
-    
+
     /// The number of winners for this reward.
     var numberOfWinners: Int
-    
+
     /// A list of candidates eligible for this reward.
     /// When a reward is deleted, all its associated candidates are also deleted.
     @Relationship(deleteRule: .cascade)
     var candidates: [Candidate]
-    
+
     /// A list of candidates who have won this reward.
     var winners: [Candidate] = []
 
