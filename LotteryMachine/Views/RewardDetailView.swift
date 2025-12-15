@@ -50,7 +50,6 @@ struct RewardDetailView: View {
                 .padding()
 
             // MARK: Winners Display
-            // MARK: Winners Display
             if !reward.winners.isEmpty {
                 WinnersDisplayView(reward: reward, theme: theme)
             }
@@ -74,7 +73,6 @@ struct RewardDetailView: View {
                 .padding()
             }
 
-            // MARK: Controls
             // MARK: Controls
             DrawControlsView(
                 viewModel: viewModel,
@@ -100,7 +98,4 @@ struct RewardDetailView: View {
             }
         )
     }
-
-    // MARK: - State (Local to View for non-logic UI stuff)
-
 }
