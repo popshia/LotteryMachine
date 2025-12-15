@@ -52,41 +52,11 @@ struct ContentView: View {
             List(selection: $selectedReward) {
                 ForEach(sortedCategories, id: \.self) { category in
                     Section(
-                        header:
-                            // Section header with category name
-                            Text(category.isEmpty ? "Uncategorized" : category)
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(theme.darkRed(for: colorScheme))
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(theme.red(for: colorScheme).opacity(0.08))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(theme.gold.opacity(0.6), lineWidth: 1)
-                            )
-                            .padding(.vertical, 6)
+                        header: CategoryHeaderView(category: category, theme: theme)
                     ) {
                         ForEach(groupedRewards[category] ?? []) { reward in
-                            // Reward item in the list
-                            HStack {
-                                Image(systemName: "sparkles")
-                                    .foregroundStyle(theme.gold)
-                                Text(reward.name)
-                                    .font(.title.weight(.semibold))
-                                Image(systemName: "sparkles")
-                                    .foregroundStyle(theme.gold)
-                                // Label {
-                                //     Text(reward.name)
-                                //         .font(.title.weight(.semibold))
-                                // } icon: {
-                                //     Image(systemName: "sparkles")
-                                //         .foregroundStyle(theme.gold)
-                                // }
-                            }
-                            .tag(reward)
+                            RewardRowView(reward: reward, theme: theme)
+                                .tag(reward)
                         }
                     }
                 }
@@ -109,15 +79,7 @@ struct ContentView: View {
                     RewardDetailView(reward: selectedReward)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    // Placeholder text when no reward is selected
-                    let message =
-                        rewards.isEmpty
-                        ? "請到設定裡增加尾牙獎項"
-                        : "請選擇一個獎項以查看詳細資訊"
-
-                    Text(message)
-                        .font(.largeTitle.bold())
-                        .foregroundColor(.primary)
+                    RewardDetailPlaceholderView(rewards: rewards, theme: theme)
                 }
             }
         } detail: {

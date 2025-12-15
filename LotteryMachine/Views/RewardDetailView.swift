@@ -50,24 +50,9 @@ struct RewardDetailView: View {
                 .padding()
 
             // MARK: Winners Display
+            // MARK: Winners Display
             if !reward.winners.isEmpty {
-                VStack {
-                    Text("🎉 中獎者 🎉")
-                    Text(
-                        reward.winners
-                            .map(\.name)
-                            .joined(separator: "    ")
-                    )
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                }
-                .padding()
-                .breathingContainer(
-                    backgroundColor: .red, borderColor: theme.gold, cornerRadius: 12
-                )
-                .padding()
-                .font(.system(size: 60))
-                .transition(.scale)
+                WinnersDisplayView(reward: reward, theme: theme)
             }
 
             // MARK: Candidates Grid
@@ -90,52 +75,13 @@ struct RewardDetailView: View {
             }
 
             // MARK: Controls
-            HStack {
-                Button(action: {
-                    viewModel.drawWinner(
-                        reward: reward, allRewards: allRewards, context: modelContext)
-                }) {
-                    Text("開始抽獎")
-                        .font(.largeTitle)
-                        .padding()
-                        .background(
-                            ZStack {
-                                LinearGradient(
-                                    colors: [
-                                        theme.red(for: colorScheme),
-                                        theme.darkRed(for: colorScheme),
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-
-                                GoldShimmer(gold: theme.gold)
-                                    .opacity(viewModel.isDrawing ? 0.35 : 1.0)
-                            }
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .buttonStyle(.borderless)
-                .scaleEffect(isHoveringDrawButton ? 1.06 : 1.0)
-                .animation(
-                    .spring(response: 0.25, dampingFraction: 0.75),
-                    value: isHoveringDrawButton
-                )
-                .onHover { hovering in
-                    isHoveringDrawButton = hovering
-                }
-                .disabled(viewModel.isDrawing || reward.candidates.isEmpty)
-                .padding()
-                Stepper(
-                    "抽取秒數: \(String(format: "%.1f", viewModel.spinningDuration))s",
-                    value: $viewModel.spinningDuration,
-                    in: 0.5...10,
-                    step: 0.5
-                )
-                .font(.title.bold())
-                .padding(.horizontal)
-            }
+            // MARK: Controls
+            DrawControlsView(
+                viewModel: viewModel,
+                reward: reward,
+                allRewards: allRewards,
+                theme: theme
+            )
 
             Spacer()
         }
@@ -157,5 +103,4 @@ struct RewardDetailView: View {
 
     // MARK: - State (Local to View for non-logic UI stuff)
 
-    @State private var isHoveringDrawButton = false
 }

@@ -27,46 +27,11 @@ struct CandidateDetailView: View {
     var body: some View {
         Form {
             Section(header: Text(reward.name).font(.title2).fontWeight(.bold)) {
-                HStack {
-                    Stepper(
-                        "總共抽取: \(reward.numberOfWinners)",
-                        value: $reward.numberOfWinners,
-                        in: 1...100
-                    )
-                    .onChange(of: reward.numberOfWinners) {
-                        // Save changes when number of winners changes
-                        try? modelContext.save()
-                    }
-                    .padding()
-
-                    Button("重置得獎人") {
-                        viewModel.resetWinners(from: reward, context: modelContext)
-                    }
-                    Button("匯入名單") {
-                        viewModel.importCandidatesFromCSV(to: reward, context: modelContext)
-                    }
-                    Button("清除名單") {
-                        viewModel.removeAllCandidates(from: reward, context: modelContext)
-                    }
-                }
+                CandidateManagementToolsView(reward: reward, viewModel: viewModel)
             }
 
             Section(header: Text("獎池名單").font(.title2).fontWeight(.bold)) {
-                List {
-                    ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
-                        Text(candidate.name)
-                            .foregroundColor(reward.winners.contains(candidate) ? .green : .primary)
-                            .contextMenu {
-                                Button("編輯") {
-                                    viewModel.prepareEdit(for: candidate)
-                                }
-                                Button("刪除", role: .destructive) {
-                                    viewModel.deleteCandidate(
-                                        candidate, from: reward, context: modelContext)
-                                }
-                            }
-                    }
-                }
+                CandidateListView(reward: reward, viewModel: viewModel)
             }
 
             HStack {

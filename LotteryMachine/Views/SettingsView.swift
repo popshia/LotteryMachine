@@ -48,19 +48,7 @@ struct SettingsView: View {
                                 .title3)
                         ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
-                                NavigationLink(
-                                    destination: CandidateDetailView(reward: reward)
-                                ) {
-                                    Text(reward.name).font(.title2)
-                                }
-                                .contextMenu {
-                                    Button("編輯") {
-                                        viewModel.prepareEdit(for: reward)
-                                    }
-                                    Button("刪除", role: .destructive) {
-                                        viewModel.deleteReward(reward, context: modelContext)
-                                    }
-                                }
+                                SettingsRewardRowView(reward: reward, viewModel: viewModel)
                             }
                         }
                     }
