@@ -122,9 +122,13 @@ struct ContentView: View {
             }
         } detail: {
             // MARK: Detail View
-            Text("等值商品可參考如下")
-                .font(.largeTitle.bold())
-                .foregroundColor(.primary)
+            ZStack {
+                theme.background(for: colorScheme)
+                    .ignoresSafeArea()
+                Text("等值商品可參考如下")
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.primary)
+            }
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(

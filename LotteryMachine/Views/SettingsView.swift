@@ -43,12 +43,15 @@ struct SettingsView: View {
                 // MARK: Rewards List
                 List {
                     ForEach(sortedCategories, id: \.self) { category in
-                        Section(header: Text(category.isEmpty ? "Uncategorized" : category)) {
+                        Section(
+                            header: Text(category.isEmpty ? "Uncategorized" : category).font(
+                                .title3)
+                        ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
                                 NavigationLink(
                                     destination: CandidateDetailView(reward: reward)
                                 ) {
-                                    Text(reward.name)
+                                    Text(reward.name).font(.title2)
                                 }
                                 .contextMenu {
                                     Button("編輯") {
@@ -93,7 +96,7 @@ struct SettingsView: View {
                 )
             }
         }
-        .frame(minWidth: 600, minHeight: 400)
+        .frame(minWidth: 600, minHeight: 600)
     }
 }
 

@@ -31,9 +31,8 @@ struct CandidateDetailView: View {
                     Stepper(
                         "總共抽取: \(reward.numberOfWinners)",
                         value: $reward.numberOfWinners,
-                        in: 1...max(1, reward.candidates.count)
+                        in: 1...100
                     )
-                    .disabled(reward.candidates.isEmpty)
                     .onChange(of: reward.numberOfWinners) {
                         // Save changes when number of winners changes
                         try? modelContext.save()
@@ -52,7 +51,7 @@ struct CandidateDetailView: View {
                 }
             }
 
-            Section(header: Text("候選人名單").font(.title2).fontWeight(.bold)) {
+            Section(header: Text("獎池名單").font(.title2).fontWeight(.bold)) {
                 List {
                     ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
                         Text(candidate.name)
@@ -80,7 +79,7 @@ struct CandidateDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .navigationTitle("Candidates")
+        .navigationTitle("編輯獎品")
         .alert("輸入名字", isPresented: $viewModel.isEditingCandidate) {
             TextField("同仁名字", text: $viewModel.editingCandidateName)
             Button("儲存") {
