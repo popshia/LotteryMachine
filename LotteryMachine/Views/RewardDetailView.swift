@@ -44,7 +44,7 @@ struct RewardDetailView: View {
     var body: some View {
         VStack {
             // MARK: Header
-            Text("💵 \(reward.name) * \(reward.numberOfWinners)位 💵")
+            Text("💵 \(reward.name) 共 \(reward.numberOfWinners) 位 💵")
                 .font(.system(size: 72))
                 .fontWeight(.bold)
                 .padding()

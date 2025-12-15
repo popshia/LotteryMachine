@@ -24,8 +24,8 @@ struct DrawControlsView: View {
                 viewModel.drawWinner(
                     reward: reward, allRewards: allRewards, context: modelContext)
             }) {
-                Text("開始抽獎")
-                    .font(.largeTitle)
+                Text("從 \(reward.candidates.count) 位中抽取 \(reward.numberOfWinners) 位得獎者")
+                    .font(.largeTitle.bold())
                     .padding()
                     .background(
                         ZStack {
@@ -57,7 +57,7 @@ struct DrawControlsView: View {
             .disabled(viewModel.isDrawing || reward.candidates.isEmpty)
             .padding()
             Stepper(
-                "抽取秒數: \(String(format: "%.1f", viewModel.spinningDuration))s",
+                "抽取間隔: \(String(format: "%.1f", viewModel.spinningDuration)) 秒",
                 value: $viewModel.spinningDuration,
                 in: 0.5...10,
                 step: 0.5
