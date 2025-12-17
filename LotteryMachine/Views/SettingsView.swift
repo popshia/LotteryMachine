@@ -19,6 +19,9 @@ struct SettingsView: View {
     @Query(sort: [SortDescriptor(\Reward.category), SortDescriptor(\Reward.name)])
     private var rewards: [Reward]
 
+    /// A query to fetch the category order preference from SwiftData.
+    @Query private var categoryPreferences: [CategoryOrderPreference]
+
     // MARK: - ViewModel
 
     @State private var viewModel = SettingsViewModel()
@@ -31,8 +34,12 @@ struct SettingsView: View {
     }
 
     /// An array of unique, sorted reward categories.
+    /// Uses persisted order from SwiftData if available, matching ContentView's ordering.
     private var sortedCategories: [String] {
-        Array(Set(rewards.map { $0.category })).sorted()
+        viewModel.getOrderedCategories(
+            categoryPreferences: categoryPreferences,
+            rewards: rewards
+        )
     }
 
     // MARK: - Body

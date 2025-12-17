@@ -26,8 +26,13 @@ struct ContentView: View {
     ])
     private var rewards: [Reward]
 
-    /// The currently selected reward in the list.
-    @State private var selectedReward: Reward?
+    /// A query to fetch the category order preference from SwiftData.
+    @Query private var categoryPreferences: [CategoryOrderPreference]
+
+    // MARK: - ViewModel
+
+    /// The view model managing business logic for this view.
+    @State private var viewModel = ContentViewModel()
 
     // MARK: - Properties
 
@@ -39,9 +44,13 @@ struct ContentView: View {
         Dictionary(grouping: rewards, by: { $0.category })
     }
 
-    /// A computed property that returns a sorted list of reward categories.
-    private var sortedCategories: [String] {
-        groupedRewards.keys.sorted()
+    /// A computed property that returns the ordered list of categories.
+    /// Uses persisted order from SwiftData if available, otherwise falls back to sorted keys.
+    private var orderedCategories: [String] {
+        viewModel.getOrderedCategories(
+            categoryPreferences: categoryPreferences,
+            groupedRewards: groupedRewards
+        )
     }
 
     // MARK: - Body
@@ -49,8 +58,8 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             // MARK: Rewards List
-            List(selection: $selectedReward) {
-                ForEach(sortedCategories, id: \.self) { category in
+            List(selection: $viewModel.selectedReward) {
+                ForEach(orderedCategories, id: \.self) { category in
                     Section(
                         header: CategoryHeaderView(category: category, theme: theme)
                     ) {
@@ -60,6 +69,22 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onMove { from, to in
+                    viewModel.saveCategoryOrder(
+                        from: from,
+                        to: to,
+                        orderedCategories: orderedCategories,
+                        categoryPreferences: categoryPreferences,
+                        context: modelContext
+                    )
+                }
+            }
+            .onAppear {
+                viewModel.initializeCategoryPreference(
+                    categoryPreferences: categoryPreferences,
+                    groupedRewards: groupedRewards,
+                    context: modelContext
+                )
             }
             .listStyle(SidebarListStyle())
             .scrollContentBackground(.hidden) // Hide default list background
@@ -74,7 +99,7 @@ struct ContentView: View {
                 theme.background(for: colorScheme)
                     .ignoresSafeArea()
 
-                if let selectedReward {
+                if let selectedReward = viewModel.selectedReward {
                     // Display the detail view for the selected reward
                     RewardDetailView(reward: selectedReward)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

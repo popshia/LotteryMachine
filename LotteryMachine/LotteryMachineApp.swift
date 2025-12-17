@@ -22,6 +22,7 @@ struct LotteryMachineApp: App {
         let schema = Schema([
             Reward.self,
             Candidate.self,
+            CategoryOrderPreference.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

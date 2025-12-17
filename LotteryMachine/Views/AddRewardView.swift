@@ -42,26 +42,13 @@ struct AddRewardView: View {
                 .font(.title)
                 .padding()
 
-            Form {
-                TextField("獎項名稱", text: $name)
-                Toggle("新獎項類別?", isOn: $isNewCategory.animation())
-
-                if isNewCategory {
-                    TextField("新獎項類別", text: $newCategory)
-                } else {
-                    Picker("獎項類別", selection: $selectedCategory) {
-                        ForEach(categories.filter { !$0.isEmpty }, id: \.self) { category in
-                            Text(category).tag(category)
-                        }
-                    }
-                    .onAppear {
-                        // Default to the first available category
-                        if selectedCategory.isEmpty {
-                            selectedCategory = categories.first(where: { !$0.isEmpty }) ?? ""
-                        }
-                    }
-                }
-            }.padding()
+            AddRewardFormView(
+                name: $name,
+                isNewCategory: $isNewCategory,
+                selectedCategory: $selectedCategory,
+                newCategory: $newCategory,
+                categories: categories
+            )
 
             HStack {
                 Button("取消") {

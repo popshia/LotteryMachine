@@ -5,6 +5,7 @@
 //  Created by Noah on 2025/11/21.
 //
 
+import Foundation
 import SwiftData
 
 // MARK: - Reward
@@ -65,5 +66,25 @@ class Candidate {
     /// - Parameter name: The name of the candidate. Defaults to an empty string.
     init(name: String = "") {
         self.name = name
+    }
+}
+
+// MARK: - CategoryOrderPreference
+
+/// A model representing the user's preferred order of reward categories.
+@Model
+class CategoryOrderPreference {
+    /// The ordered list of category names.
+    var categories: [String]
+
+    /// The timestamp when this preference was last updated.
+    var lastUpdated: Date
+
+    /// Initializes a new category order preference.
+    ///
+    /// - Parameter categories: The ordered list of categories. Defaults to an empty array.
+    init(categories: [String] = []) {
+        self.categories = categories
+        self.lastUpdated = Date()
     }
 }
