@@ -58,7 +58,7 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             // MARK: Rewards List
-            List(selection: $viewModel.selectedReward) {
+            List {
                 ForEach(orderedCategories, id: \.self) { category in
                     Section(
                         header: CategoryHeaderView(category: category, theme: theme)
@@ -66,6 +66,17 @@ struct ContentView: View {
                         ForEach(groupedRewards[category] ?? []) { reward in
                             RewardRowView(reward: reward, theme: theme)
                                 .tag(reward)
+                                .padding(.vertical, 2)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(
+                                            viewModel.selectedReward?.id == reward.id
+                                                ? theme.gold : Color.clear, lineWidth: 2)
+                                )
+                                .onTapGesture {
+                                    viewModel.selectedReward = reward
+                                }
                         }
                     }
                 }
@@ -90,7 +101,7 @@ struct ContentView: View {
             .scrollContentBackground(.hidden) // Hide default list background
             .background(theme.background(for: colorScheme))
             .shadow(radius: 10)
-            .tint(theme.gold) // Set the accent color for the list
+            .tint(theme.gold) // Hide default selection color to use our custom one
             .navigationTitle("Lottery Machine")
         } content: {
             // MARK: Content View
