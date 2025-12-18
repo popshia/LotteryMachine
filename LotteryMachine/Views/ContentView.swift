@@ -34,6 +34,9 @@ struct ContentView: View {
     /// The view model managing business logic for this view.
     @State private var viewModel = ContentViewModel()
 
+    /// State to control the visibility of the settings sheet.
+    @State private var isShowingSettings = false
+
     // MARK: - Properties
 
     /// The theme instance for styling the view.
@@ -67,7 +70,7 @@ struct ContentView: View {
                             RewardRowView(reward: reward, theme: theme)
                                 .tag(reward)
                                 .padding(.vertical, 2)
-                                .padding(.horizontal, 12)
+                                .padding(.horizontal, 4)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
                                         .stroke(
@@ -133,6 +136,23 @@ struct ContentView: View {
             theme.background(for: colorScheme).opacity(0.95),
             for: .windowToolbar
         )
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    isShowingSettings = true
+                }) {
+                    Label("Settings", systemImage: "gearshape")
+                        .foregroundColor(theme.red(for: colorScheme))
+                }
+                .buttonStyle(.automatic)
+                .help("Open Settings")
+            }
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView()
+                .frame(minWidth: 800, minHeight: 600)
+                .preferredColorScheme(.light)
+        }
     }
 }
 

@@ -15,6 +15,9 @@ struct SettingsView: View {
     /// The SwiftData model context for database operations.
     @Environment(\.modelContext) private var modelContext
 
+    /// Environment variable to dismiss the view when presented as a sheet.
+    @Environment(\.dismiss) private var dismiss
+
     /// A query to fetch all rewards, sorted by category and name.
     @Query(sort: [SortDescriptor(\Reward.category), SortDescriptor(\Reward.name)])
     private var rewards: [Reward]
@@ -51,8 +54,15 @@ struct SettingsView: View {
                 List {
                     ForEach(sortedCategories, id: \.self) { category in
                         Section(
-                            header: Text(category.isEmpty ? "Uncategorized" : category).font(
-                                .title3)
+                            header: Text(category.isEmpty ? "Uncategorized" : category)
+                                .font(.title3)
+                                .contextMenu {
+                                    Button {
+                                        viewModel.prepareCategoryRename(category: category)
+                                    } label: {
+                                        Label("編輯類別名稱", systemImage: "pencil")
+                                    }
+                                }
                         ) {
                             ForEach(groupedRewards[category] ?? []) { reward in
                                 SettingsRewardRowView(reward: reward, viewModel: viewModel)
@@ -67,9 +77,27 @@ struct SettingsView: View {
                         viewModel.editReward(
                             newName: viewModel.editingRewardName, context: modelContext)
                     }
+                    .buttonStyle(.glass)
                     Button("取消", role: .cancel) {}
+                        .buttonStyle(.glass)
                 } message: {
                     Text("請輸入新的獎項名稱")
+                }
+                .alert("編輯類別名稱", isPresented: $viewModel.isRenamingCategory) {
+                    TextField("類別名稱", text: $viewModel.editingCategoryName)
+                    Button("儲存") {
+                        viewModel.renameCategory(
+                            newName: viewModel.editingCategoryName,
+                            context: modelContext,
+                            rewards: rewards,
+                            preferences: categoryPreferences
+                        )
+                    }
+                    .buttonStyle(.glass)
+                    Button("取消", role: .cancel) {}
+                        .buttonStyle(.glass)
+                } message: {
+                    Text("請輸入新的類別名稱")
                 }
 
                 // MARK: Add Reward Button
@@ -80,7 +108,7 @@ struct SettingsView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Rewards")
+            .navigationTitle("獎項管理")
             .sheet(isPresented: $viewModel.isShowingAddRewardSheet) {
                 AddRewardView(
                     isPresented: $viewModel.isShowingAddRewardSheet,
@@ -89,6 +117,14 @@ struct SettingsView: View {
                         viewModel.addReward(name: name, category: category, context: modelContext)
                     }
                 )
+            }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .buttonStyle(.glass)
+                }
             }
         }
         .frame(minWidth: 600, minHeight: 600)

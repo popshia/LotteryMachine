@@ -53,13 +53,5 @@ struct LotteryMachineApp: App {
                 .preferredColorScheme(.light)
         }
         .modelContainer(sharedModelContainer)
-
-        #if os(macOS)
-            Settings {
-                SettingsView()
-                    .preferredColorScheme(.light)
-                    .modelContainer(sharedModelContainer)
-            }
-        #endif
     }
 }

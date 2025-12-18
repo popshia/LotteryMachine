@@ -20,6 +20,10 @@ class SettingsViewModel {
     var rewardToEdit: Reward?
     var editingRewardName = ""
 
+    var isRenamingCategory = false
+    var categoryToRename: String?
+    var editingCategoryName = ""
+
     // MARK: - Initialization
     // We can inject context later or init with it if available,
     // but typically ViewModels in SwiftUI @Observable might get context from View via method calls
@@ -101,5 +105,55 @@ class SettingsViewModel {
         let newCategories = currentCategories.subtracting(savedCategories).sorted()
 
         return savedCategories + newCategories
+    }
+
+    // MARK: - Category Actions
+
+    /// Prepares the view model to rename a specific category.
+    ///
+    /// - Parameter category: The category to rename.
+    func prepareCategoryRename(category: String) {
+        categoryToRename = category
+        editingCategoryName = category
+        isRenamingCategory = true
+    }
+
+    /// Renames a category across all rewards and order preferences.
+    ///
+    /// - Parameters:
+    ///   - newName: The new name for the category.
+    ///   - context: The model context for database operations.
+    ///   - rewards: All rewards fetched from the view.
+    ///   - preferences: Category order preferences fetched from the view.
+    func renameCategory(
+        newName: String,
+        context: ModelContext,
+        rewards: [Reward],
+        preferences: [CategoryOrderPreference]
+    ) {
+        guard let oldName = categoryToRename, !newName.isEmpty, oldName != newName else { return }
+
+        // 1. Update all rewards in this category
+        let rewardsToUpdate = rewards.filter { $0.category == oldName }
+        for reward in rewardsToUpdate {
+            reward.category = newName
+        }
+
+        // 2. Update category order preferences
+        for preference in preferences {
+            if let index = preference.categories.firstIndex(of: oldName) {
+                preference.categories[index] = newName
+                preference.lastUpdated = Date()
+            }
+        }
+
+        do {
+            try context.save()
+        } catch {
+            print("Failed to rename category: \(error.localizedDescription)")
+        }
+
+        categoryToRename = nil
+        editingCategoryName = ""
     }
 }
