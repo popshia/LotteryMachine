@@ -26,6 +26,6 @@ struct CategoryHeaderView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(theme.gold.opacity(0.6), lineWidth: 1)
             )
-            .padding(.vertical, 6)
+            .padding(.vertical, 2)
     }
 }

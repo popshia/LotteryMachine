@@ -70,24 +70,32 @@ class CandidateDetailViewModel {
         do {
             let contents = try String(contentsOfFile: filepath, encoding: .utf8)
             let lines = contents.components(separatedBy: .newlines)
-            let dataLines = lines.dropFirst() // Skip header row
+            let dataLines = lines.dropFirst()
 
             var existingCandidateNames = Set(reward.candidates.map { $0.name })
 
             for line in dataLines {
                 let columns = line.components(separatedBy: ",")
-                // Assuming format: id,name,department,... or just check last column as per original code
-                // Original code: if columns.count > 4, let candidateName = columns.last
-                if columns.count > 4,
-                    let candidateName = columns.last?.trimmingCharacters(
-                        in: .whitespacesAndNewlines), !candidateName.isEmpty
-                {
-                    if !existingCandidateNames.contains(candidateName) {
-                        let newCandidate = Candidate(name: candidateName)
-                        reward.candidates.append(newCandidate)
-                        existingCandidateNames.insert(candidateName)
-                    }
+
+                guard columns.count == 7 else {
+                    print("Invalid line: \(line)")
+                    continue
                 }
+                let candidateName = columns[4].trimmingCharacters(
+                    in: .whitespacesAndNewlines)
+
+                guard !candidateName.isEmpty else {
+                    print("Invalid candidate name: \(candidateName)")
+                    continue
+                }
+                guard !existingCandidateNames.contains(candidateName) else {
+                    print("Duplicate candidate name: \(candidateName)")
+                    continue
+                }
+
+                let newCandidate = Candidate(name: candidateName)
+                reward.candidates.append(newCandidate)
+                existingCandidateNames.insert(candidateName)
             }
             saveChanges(context: context)
         } catch {

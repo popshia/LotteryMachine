@@ -70,7 +70,7 @@ struct ContentView: View {
                             RewardRowView(reward: reward, theme: theme)
                                 .tag(reward)
                                 .padding(.vertical, 2)
-                                .padding(.horizontal, 4)
+                                .padding(.horizontal, 2)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
                                         .stroke(
@@ -106,7 +106,7 @@ struct ContentView: View {
             .shadow(radius: 10)
             .tint(theme.gold) // Hide default selection color to use our custom one
             .navigationTitle("Lottery Machine")
-        } content: {
+        } detail: {
             // MARK: Content View
             ZStack {
                 // Background for the detail view
@@ -120,15 +120,6 @@ struct ContentView: View {
                 } else {
                     RewardDetailPlaceholderView(rewards: rewards, theme: theme)
                 }
-            }
-        } detail: {
-            // MARK: Detail View
-            ZStack {
-                theme.background(for: colorScheme)
-                    .ignoresSafeArea()
-                Text("等值商品可參考如下")
-                    .font(.largeTitle.bold())
-                    .foregroundColor(.primary)
             }
         }
         .navigationSplitViewStyle(.balanced)
