@@ -37,6 +37,9 @@ struct ContentView: View {
     /// State to control the visibility of the settings sheet.
     @State private var isShowingSettings = false
 
+    /// The view model for candidate management, passed to SettingsView.
+    @State private var candidateModel = CandidateDetailViewModel()
+
     // MARK: - Properties
 
     /// The theme instance for styling the view.
@@ -60,67 +63,20 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            // MARK: Rewards List
-            List {
-                ForEach(orderedCategories, id: \.self) { category in
-                    Section(
-                        header: CategoryHeaderView(category: category, theme: theme)
-                    ) {
-                        ForEach(groupedRewards[category] ?? []) { reward in
-                            RewardRowView(reward: reward, theme: theme)
-                                .tag(reward)
-                                .padding(.vertical, 2)
-                                .padding(.horizontal, 2)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(
-                                            viewModel.selectedReward?.id == reward.id
-                                                ? theme.gold : Color.clear, lineWidth: 2)
-                                )
-                                .onTapGesture {
-                                    viewModel.selectedReward = reward
-                                }
-                        }
-                    }
-                }
-                .onMove { from, to in
-                    viewModel.saveCategoryOrder(
-                        from: from,
-                        to: to,
-                        orderedCategories: orderedCategories,
-                        categoryPreferences: categoryPreferences,
-                        context: modelContext
-                    )
-                }
-            }
-            .onAppear {
-                viewModel.initializeCategoryPreference(
-                    categoryPreferences: categoryPreferences,
-                    groupedRewards: groupedRewards,
-                    context: modelContext
-                )
-            }
-            .listStyle(SidebarListStyle())
-            .scrollContentBackground(.hidden) // Hide default list background
-            .background(theme.background(for: colorScheme))
-            .shadow(radius: 10)
-            .tint(theme.gold) // Hide default selection color to use our custom one
-            .navigationTitle("Lottery Machine")
+            SidebarView(
+                orderedCategories: orderedCategories,
+                groupedRewards: groupedRewards,
+                theme: theme,
+                viewModel: viewModel,
+                categoryPreferences: categoryPreferences,
+                modelContext: modelContext
+            )
         } detail: {
-            // MARK: Content View
-            ZStack {
-                // Background for the detail view
-                theme.background(for: colorScheme)
-                    .ignoresSafeArea()
-
-                if let selectedReward = viewModel.selectedReward {
-                    // Display the detail view for the selected reward
-                    RewardDetailView(reward: selectedReward)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    RewardDetailPlaceholderView(rewards: rewards, theme: theme)
-                }
-            }
+            MainContentAreaView(
+                viewModel: viewModel,
+                rewards: rewards,
+                theme: theme
+            )
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(
@@ -140,62 +96,94 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView()
+            SettingsView(candidateModel: candidateModel)
                 .frame(minWidth: 800, minHeight: 600)
                 .preferredColorScheme(.light)
         }
     }
 }
 
-// MARK: - Preview
+// MARK: - Subviews
 
-#if DEBUG
-    struct ContentView_Previews: PreviewProvider {
-        static var previews: some View {
-            do {
-                let config = ModelConfiguration(isStoredInMemoryOnly: true)
-                let container = try ModelContainer(
-                    for: Reward.self,
-                    Candidate.self,
-                    configurations: config
-                )
+private struct SidebarView: View {
+    let orderedCategories: [String]
+    let groupedRewards: [String: [Reward]]
+    let theme: SeasonalTheme
+    @Bindable var viewModel: ContentViewModel
+    let categoryPreferences: [CategoryOrderPreference]
+    let modelContext: ModelContext
 
-                // Create sample data for the preview
-                let reward1 = Reward(
-                    name: "Christmas Bonus",
-                    category: "Holiday",
-                    numberOfWinners: 2
-                )
-                reward1.candidates.append(Candidate(name: "Noah"))
-                reward1.candidates.append(Candidate(name: "Liam"))
-                reward1.candidates.append(Candidate(name: "Emma"))
+    @Environment(\.colorScheme) private var colorScheme
 
-                let reward2 = Reward(
-                    name: "Holiday Raffle",
-                    category: "Holiday",
-                    numberOfWinners: 1
-                )
-                reward2.candidates.append(Candidate(name: "Olivia"))
-                reward2.candidates.append(Candidate(name: "William"))
-
-                let reward3 = Reward(
-                    name: "Q1 Bonus",
-                    category: "Quarterly",
-                    numberOfWinners: 1
-                )
-
-                // Insert sample data into the container
-                container.mainContext.insert(reward1)
-                container.mainContext.insert(reward2)
-                container.mainContext.insert(reward3)
-
-                return ContentView()
-                    .modelContainer(container)
-            } catch {
-                fatalError(
-                    "Failed to create ModelContainer for Preview: \(error.localizedDescription)"
+    var body: some View {
+        List {
+            ForEach(orderedCategories, id: \.self) { category in
+                Section(
+                    header: CategoryHeaderView(category: category, theme: theme)
+                ) {
+                    ForEach(groupedRewards[category] ?? []) { reward in
+                        RewardRowView(reward: reward, theme: theme)
+                            .tag(reward)
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(
+                                        viewModel.selectedReward?.id == reward.id
+                                            ? theme.gold : Color.clear, lineWidth: 2)
+                            )
+                            .onTapGesture {
+                                viewModel.selectedReward = reward
+                            }
+                    }
+                }
+            }
+            .onMove { from, to in
+                viewModel.saveCategoryOrder(
+                    from: from,
+                    to: to,
+                    orderedCategories: orderedCategories,
+                    categoryPreferences: categoryPreferences,
+                    context: modelContext
                 )
             }
         }
+        .onAppear {
+            viewModel.initializeCategoryPreference(
+                categoryPreferences: categoryPreferences,
+                groupedRewards: groupedRewards,
+                context: modelContext
+            )
+        }
+        .listStyle(SidebarListStyle())
+        .scrollContentBackground(.hidden) // Hide default list background
+        .background(theme.background(for: colorScheme))
+        .shadow(radius: 10)
+        .tint(theme.gold) // Hide default selection color to use our custom one
+        .navigationTitle("Lottery Machine")
     }
-#endif
+}
+
+private struct MainContentAreaView: View {
+    @Bindable var viewModel: ContentViewModel
+    let rewards: [Reward]
+    let theme: SeasonalTheme
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack {
+            // Background for the detail view
+            theme.background(for: colorScheme)
+                .ignoresSafeArea()
+
+            if let selectedReward = viewModel.selectedReward {
+                // Display the detail view for the selected reward
+                RewardDetailView(reward: selectedReward)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                RewardDetailPlaceholderView(rewards: rewards, theme: theme)
+            }
+        }
+    }
+}

@@ -28,6 +28,8 @@ struct SettingsView: View {
     // MARK: - ViewModel
 
     @State private var viewModel = SettingsViewModel()
+    let candidateModel: CandidateDetailViewModel
+    @State private var showingResetConfirmation = false
 
     // MARK: - Computed Properties
 
@@ -100,24 +102,8 @@ struct SettingsView: View {
                     Text("請輸入新的類別名稱")
                 }
 
-                // MARK: Add Reward Button
-                Button(action: {
-                    viewModel.isShowingAddRewardSheet = true
-                }) {
-                    Label("新增獎項", systemImage: "plus")
-                }
-                .padding()
             }
             .navigationTitle("獎項管理")
-            .sheet(isPresented: $viewModel.isShowingAddRewardSheet) {
-                AddRewardView(
-                    isPresented: $viewModel.isShowingAddRewardSheet,
-                    categories: sortedCategories,
-                    onSave: { name, category in
-                        viewModel.addReward(name: name, category: category, context: modelContext)
-                    }
-                )
-            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
@@ -128,44 +114,49 @@ struct SettingsView: View {
             }
         }
         .frame(minWidth: 600, minHeight: 600)
-    }
-}
-
-// MARK: - Preview
-
-#if DEBUG
-    struct SettingsView_Previews: PreviewProvider {
-        static var previews: some View {
-            do {
-                let config = ModelConfiguration(isStoredInMemoryOnly: true)
-                let container = try ModelContainer(
-                    for: Reward.self, Candidate.self, configurations: config)
-
-                // Sample data for preview
-                let reward1 = Reward(
-                    name: "Christmas Bonus", category: "Holiday", numberOfWinners: 2)
-                reward1.candidates.append(Candidate(name: "Noah"))
-                reward1.candidates.append(Candidate(name: "Liam"))
-                reward1.candidates.append(Candidate(name: "Emma"))
-
-                let reward2 = Reward(
-                    name: "Holiday Raffle", category: "Holiday", numberOfWinners: 1)
-                reward2.candidates.append(Candidate(name: "Olivia"))
-                reward2.candidates.append(Candidate(name: "William"))
-
-                let reward3 = Reward(name: "Q1 Bonus", category: "Quarterly", numberOfWinners: 1)
-
-                // Insert data into the context
-                container.mainContext.insert(reward1)
-                container.mainContext.insert(reward2)
-                container.mainContext.insert(reward3)
-
-                return SettingsView()
-                    .modelContainer(container)
-            } catch {
-                fatalError(
-                    "Failed to create ModelContainer for Preview: \(error.localizedDescription)")
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    viewModel.isShowingAddRewardSheet = true
+                }) {
+                    Label("新增獎項", systemImage: "plus")
+                }
+                .foregroundStyle(.blue)
+                .buttonStyle(.automatic)
+            }
+            ToolbarItem(placement: .automatic) {
+                Button(role: .destructive) {
+                    showingResetConfirmation = true
+                } label: {
+                    Label("重置系統", systemImage: "arrow.clockwise")
+                }
+                .foregroundStyle(.red)
+                .buttonStyle(.automatic)
             }
         }
+        .sheet(isPresented: $viewModel.isShowingAddRewardSheet) {
+            AddRewardView(
+                isPresented: $viewModel.isShowingAddRewardSheet,
+                categories: sortedCategories,
+                onSave: { name, category in
+                    viewModel.addReward(name: name, category: category, context: modelContext)
+                }
+            )
+        }
+        .alert("Reset system", isPresented: $showingResetConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Reset", role: .destructive) {
+                do {
+                    try candidateModel.resetAllData(rewards: rewards, context: modelContext)
+                } catch {
+                    // In a real app we might want to show this error to the user
+                    print("Reset failed: \(error.localizedDescription)")
+                }
+            }
+        } message: {
+            Text(
+                "Are you sure you want to reset all data? This action cannot be undone."
+            )
+        }
     }
-#endif
+}

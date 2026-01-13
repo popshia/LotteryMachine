@@ -51,7 +51,7 @@ struct BreathingContainer: ViewModifier {
                         color: borderColor.opacity(breathe ? 0.5 : 0.15),
                         radius: breathe ? 8 : 3
                     )
-                    .scaleEffect(breathe ? 1.02 : 1)
+                    .scaleEffect(breathe ? 1.01 : 1)
             }
             .onAppear {
                 withAnimation(

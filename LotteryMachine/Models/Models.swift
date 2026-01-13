@@ -19,6 +19,12 @@ class Reward {
     /// The category of the reward (e.g., "Holiday", "Quarterly").
     var category: String
 
+    /// Is the reward a group reward?
+    var isGroupReward: Bool = false
+
+    /// Is the reward being drawn?
+    var isDrawn: Bool = false
+
     /// The number of winners for this reward.
     var numberOfWinners: Int
 
@@ -61,11 +67,15 @@ class Candidate {
     /// The name of the candidate.
     var name: String
 
+    /// The timestamp when the candidate won a reward.
+    var winTimestamp: Date?
+
     /// Initializes a new candidate.
     ///
     /// - Parameter name: The name of the candidate. Defaults to an empty string.
-    init(name: String = "") {
+    init(name: String = "", winTimestamp: Date? = nil) {
         self.name = name
+        self.winTimestamp = winTimestamp
     }
 }
 

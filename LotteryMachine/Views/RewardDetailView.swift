@@ -36,18 +36,17 @@ struct RewardDetailView: View {
 
     /// The columns for the candidate grid, making the layout adaptive.
     let columns = [
-        GridItem(.adaptive(minimum: 200))
+        GridItem(.adaptive(minimum: 160))
     ]
 
     // MARK: - Body
 
     var body: some View {
-        VStack {
+        VStack(spacing: 8) {
             // MARK: Header
             Text("💵 \(reward.name) 共 \(reward.numberOfWinners) 位 💵")
                 .font(.system(size: 72))
                 .fontWeight(.bold)
-                .padding()
 
             // MARK: Winners Display
             if !reward.winners.isEmpty {
@@ -70,7 +69,7 @@ struct RewardDetailView: View {
                         )
                     }
                 }
-                .padding()
+                .padding(.vertical, 4)
             }
 
             // MARK: Controls
@@ -80,8 +79,6 @@ struct RewardDetailView: View {
                 allRewards: allRewards,
                 theme: theme
             )
-
-            Spacer()
         }
         .navigationTitle("C-Link 尾牙抽獎")
         .overlay(

@@ -15,7 +15,7 @@ struct CandidateListView: View {
 
     var body: some View {
         List {
-            ForEach(reward.candidates.sorted(by: { $0.name < $1.name })) { candidate in
+            ForEach(reward.candidates) { candidate in
                 Text(candidate.name)
                     .foregroundColor(reward.winners.contains(candidate) ? .green : .primary)
                     .contextMenu {

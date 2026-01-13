@@ -13,22 +13,40 @@ struct WinnersDisplayView: View {
     let theme: SeasonalTheme
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10) {
             Text("🎉 中獎者 🎉")
-            Text(
-                reward.winners
-                    .map(\.name)
-                    .joined(separator: "    ")
-            )
-            .fontWeight(.bold)
-            .foregroundColor(.black)
+                .padding(.horizontal, 8)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 40) {
+                    winnersList
+                }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 20) {
+                    winnersList
+                }
+            }
+            .padding(.horizontal, 12)
         }
-        .padding()
+        .padding(.vertical, 12)
         .breathingContainer(
             backgroundColor: .red, borderColor: theme.gold, cornerRadius: 12
         )
         .padding()
-        .font(.system(size: 60))
+        .font(.system(size: 48))
+        .fontWeight(.bold)
+        .foregroundColor(.black)
         .transition(.scale)
+    }
+
+    @ViewBuilder
+    private var winnersList: some View {
+        ForEach(
+            reward.winners.sorted {
+                ($0.winTimestamp ?? Date.distantPast)
+                    < ($1.winTimestamp ?? Date.distantPast)
+            }
+        ) { winner in
+            Text(winner.name)
+                .multilineTextAlignment(.center)
+        }
     }
 }

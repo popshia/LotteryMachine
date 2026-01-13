@@ -58,49 +58,100 @@ class CandidateDetailViewModel {
 
     func resetWinners(from reward: Reward, context: ModelContext) {
         reward.winners.removeAll()
+        reward.isDrawn = false
         saveChanges(context: context)
     }
 
     func importCandidatesFromCSV(to reward: Reward, context: ModelContext) {
-        guard let filepath = Bundle.main.path(forResource: "candidates", ofType: "csv") else {
-            print("candidates.csv not found")
+        print("Importing candidates from CSV...")
+        guard let filepath = Bundle.main.path(forResource: "candidates_final", ofType: "csv") else {
+            print("candidates_final.csv not found")
             return
         }
 
         do {
             let contents = try String(contentsOfFile: filepath, encoding: .utf8)
-            let lines = contents.components(separatedBy: .newlines)
-            let dataLines = lines.dropFirst()
+            let rows = contents.components(separatedBy: .newlines)
+            let headerColumns = rows.first?.components(separatedBy: ",") ?? []
+            let dataRows = rows.dropFirst()
 
-            var existingCandidateNames = Set(reward.candidates.map { $0.name })
-
-            for line in dataLines {
-                let columns = line.components(separatedBy: ",")
-
-                guard columns.count == 7 else {
-                    print("Invalid line: \(line)")
-                    continue
-                }
-                let candidateName = columns[4].trimmingCharacters(
-                    in: .whitespacesAndNewlines)
-
-                guard !candidateName.isEmpty else {
-                    print("Invalid candidate name: \(candidateName)")
-                    continue
-                }
-                guard !existingCandidateNames.contains(candidateName) else {
-                    print("Duplicate candidate name: \(candidateName)")
-                    continue
+            func columnValues(column: String) -> [String] {
+                guard let index = headerColumns.firstIndex(where: { $0.contains(column) }) else {
+                    return []
                 }
 
-                let newCandidate = Candidate(name: candidateName)
+                return dataRows.compactMap { row in
+                    let columns = row.components(separatedBy: ",")
+                    guard index < columns.count else { return nil }
+                    let value = columns[index].trimmingCharacters(in: .whitespacesAndNewlines)
+                    return value.isEmpty ? nil : value
+                }
+            }
+
+            let correspondCandidateNames = columnValues(column: reward.category)
+
+            for name in correspondCandidateNames {
+                let newCandidate = Candidate(name: name)
                 reward.candidates.append(newCandidate)
-                existingCandidateNames.insert(candidateName)
             }
             saveChanges(context: context)
         } catch {
             print("Error reading or parsing CSV file: \(error.localizedDescription)")
         }
+    }
+
+    func resetAllData(rewards: [Reward], context: ModelContext) throws {
+        // 1. Pre-load and parse CSV to ensure it exists and is valid before deleting anything
+        guard let filepath = Bundle.main.path(forResource: "candidates_final", ofType: "csv") else {
+            throw NSError(
+                domain: "CandidateDetailViewModel", code: 404,
+                userInfo: [NSLocalizedDescriptionKey: "candidates_final.csv not found"])
+        }
+
+        let contents = try String(contentsOfFile: filepath, encoding: .utf8)
+        let rows = contents.components(separatedBy: .newlines)
+        let headerColumns = rows.first?.components(separatedBy: ",") ?? []
+        // Clean headers to ensure accurate matching
+        let cleanHeaders = headerColumns.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        let dataRows = rows.dropFirst()
+
+        // Helper to get column data from parsed rows
+        func getValues(forColumnIndex index: Int) -> [String] {
+            return dataRows.compactMap { row in
+                let columns = row.components(separatedBy: ",")
+                guard index < columns.count else { return nil }
+                let value = columns[index].trimmingCharacters(in: .whitespacesAndNewlines)
+                return value.isEmpty ? nil : value
+            }
+        }
+
+        // 2. Perform Batch Reset
+        for reward in rewards.filter({ $0.name != "總經理獎" }) {
+            // Logic matching resetWinners
+            reward.winners.removeAll()
+            reward.isDrawn = false
+
+            // Logic matching removeAllCandidates
+            for candidate in reward.candidates {
+                context.delete(candidate)
+            }
+            reward.candidates.removeAll()
+
+            // Logic matching importCandidatesFromCSV
+            // Find column index for this reward's category
+            // Note: Original logic used `contains`, so we replicate that flexible matching
+            if let index = cleanHeaders.firstIndex(where: { $0.contains(reward.category) }) {
+                let candidateNames = getValues(forColumnIndex: index)
+                for name in candidateNames {
+                    let newCandidate = Candidate(name: name)
+                    reward.candidates.append(newCandidate)
+                }
+            }
+        }
+
+        // 3. Single Save
+        saveChanges(context: context)
     }
 
     private func saveChanges(context: ModelContext) {

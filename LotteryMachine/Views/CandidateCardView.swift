@@ -26,11 +26,19 @@ struct CandidateCardView: View {
     // MARK: - Body
 
     var body: some View {
-        Text(candidate.name)
-            .font(.system(size: 40).bold())
+        let candidateName: Text = {
+            if candidate.name.count > 3 {
+                return Text(candidate.name.prefix(3)).font(.system(size: 32))
+                    + Text(String(candidate.name.last!)).font(.system(size: 16)).baselineOffset(
+                        16)
+            } else {
+                return Text(candidate.name).font(.system(size: 32))
+            }
+        }()
+        candidateName
             .foregroundStyle(theme.darkRed(for: .light))
             .padding()
-            .frame(width: 180, height: 100)
+            .frame(width: 140, height: 60)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(
@@ -53,14 +61,3 @@ struct CandidateCardView: View {
             .animation(.easeInOut, value: isHighlighted)
     }
 }
-//.font(.title2.weight(.bold))
-//    .padding(.vertical, 6)
-//    .padding(.horizontal, 10)
-//    .background(
-//        RoundedRectangle(cornerRadius: 8)
-//            .fill(theme.red(for: colorScheme).opacity(0.08))
-//    )
-//    .overlay(
-//        RoundedRectangle(cornerRadius: 8)
-//            .stroke(theme.gold.opacity(0.6), lineWidth: 1)
-//    )

@@ -16,7 +16,7 @@ class RewardDetailViewModel {
 
     var isDrawing = false
     var highlightedCandidate: Candidate?
-    var spinningDuration = 1.0
+    var spinningDuration = 0.5
     var confettiBursts: [UUID] = []
 
     // MARK: - Audio
@@ -31,6 +31,7 @@ class RewardDetailViewModel {
 
         isDrawing = true
         reward.winners = []
+        reward.isDrawn = true
         spinningPlayer = playSound(named: "spinning.mp3", loop: true)
 
         // We need a local copy to pick from?
@@ -89,13 +90,20 @@ class RewardDetailViewModel {
 
             // UI Updates
             withAnimation(.spring()) {
+                winner.winTimestamp = Date()
                 reward.winners.append(winner)
                 self.highlightedCandidate = nil
                 self.playTick()
             }
 
             // Logic: Remove from other rewards
-            for otherReward in allRewards where otherReward.id != reward.id {
+            var rewardToProcess: [Reward] = allRewards.filter { $0.id != reward.id && !$0.isDrawn }
+            if reward.isGroupReward {
+                rewardToProcess = rewardToProcess.filter { $0.isGroupReward }
+            } else {
+                rewardToProcess = rewardToProcess.filter { $0.category == reward.category }
+            }
+            for otherReward in rewardToProcess {
                 otherReward.candidates.removeAll { $0.name == winner.name }
             }
 
@@ -105,7 +113,7 @@ class RewardDetailViewModel {
                 print("Failed to save context: \(error)")
             }
 
-            // Next iteration
+            // next iteration
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.drawNextWinner(
                     reward: reward, allRewards: allRewards, context: context,

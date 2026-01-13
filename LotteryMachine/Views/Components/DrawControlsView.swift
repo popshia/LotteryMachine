@@ -59,8 +59,8 @@ struct DrawControlsView: View {
             Stepper(
                 "抽取間隔: \(String(format: "%.1f", viewModel.spinningDuration)) 秒",
                 value: $viewModel.spinningDuration,
-                in: 0.5...10,
-                step: 0.5
+                in: 0.1...10,
+                step: 0.1
             )
             .font(.title.bold())
             .padding(.horizontal)

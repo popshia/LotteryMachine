@@ -30,7 +30,13 @@ struct CandidateDetailView: View {
                 CandidateManagementToolsView(reward: reward, viewModel: viewModel)
             }
 
-            Section(header: Text("獎池名單").font(.title2).fontWeight(.bold)) {
+            Toggle("是否為群獎", isOn: $reward.isGroupReward)
+                .toggleStyle(.switch)
+
+            Section(
+                header: Text("獎池名單").font(.title2).fontWeight(.bold) + Text(" (").font(.body)
+                    + Text("\(reward.candidates.count)").font(.body) + Text(")").font(.body)
+            ) {
                 CandidateListView(reward: reward, viewModel: viewModel)
             }
 
