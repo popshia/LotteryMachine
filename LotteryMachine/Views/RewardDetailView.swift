@@ -16,6 +16,12 @@ struct RewardDetailView: View {
     /// The reward being displayed.
     var reward: Reward
 
+    /// The content view model for navigation between rewards.
+    @Bindable var contentViewModel: ContentViewModel
+
+    /// The rewards in their ordered sequence for navigation.
+    var orderedRewards: [Reward]
+
     /// A query to fetch all rewards from SwiftData. This is used to remove winners from other reward categories.
     @Query private var allRewards: [Reward]
 
@@ -44,7 +50,7 @@ struct RewardDetailView: View {
     var body: some View {
         VStack(spacing: 8) {
             // MARK: Header
-            Text("💵 \(reward.name) 共 \(reward.numberOfWinners) 位 💵")
+            Text("💵 \(reward.category)：\(reward.name) 共 \(reward.numberOfWinners) 位 💵")
                 .font(.system(size: 72))
                 .fontWeight(.bold)
 
@@ -75,8 +81,9 @@ struct RewardDetailView: View {
             // MARK: Controls
             DrawControlsView(
                 viewModel: viewModel,
+                contentViewModel: contentViewModel,
                 reward: reward,
-                allRewards: allRewards,
+                allRewards: orderedRewards,
                 theme: theme
             )
         }

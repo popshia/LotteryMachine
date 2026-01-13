@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// The main view of the app, displaying a list of rewards and their details.
 struct ContentView: View {
@@ -40,6 +41,10 @@ struct ContentView: View {
     /// The view model for candidate management, passed to SettingsView.
     @State private var candidateModel = CandidateDetailViewModel()
 
+    /// State to control the CSV export process.
+    @State private var isExporting = false
+    @State private var exportDocument = CSVDocument()
+
     // MARK: - Properties
 
     /// The theme instance for styling the view.
@@ -59,9 +64,16 @@ struct ContentView: View {
         )
     }
 
+    /// A computed property that returns the list of rewards in the order they appear in the sidebar.
+    private var orderedRewards: [Reward] {
+        orderedCategories.flatMap { groupedRewards[$0] ?? [] }
+    }
+
     // MARK: - Body
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         NavigationSplitView {
             SidebarView(
                 orderedCategories: orderedCategories,
@@ -75,6 +87,7 @@ struct ContentView: View {
             MainContentAreaView(
                 viewModel: viewModel,
                 rewards: rewards,
+                orderedRewards: orderedRewards,
                 theme: theme
             )
         }
@@ -84,6 +97,18 @@ struct ContentView: View {
             for: .windowToolbar
         )
         .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    let csvString = viewModel.generateExportCSV(from: rewards)
+                    exportDocument = CSVDocument(text: csvString)
+                    isExporting = true
+                }) {
+                    Label("Export CSV", systemImage: "square.and.arrow.up")
+                        .foregroundColor(theme.red(for: colorScheme))
+                }
+                .buttonStyle(.automatic)
+                .help("Export Database to CSV")
+            }
             ToolbarItem(placement: .automatic) {
                 Button(action: {
                     isShowingSettings = true
@@ -99,6 +124,20 @@ struct ContentView: View {
             SettingsView(candidateModel: candidateModel)
                 .frame(minWidth: 800, minHeight: 600)
                 .preferredColorScheme(.light)
+        }
+        .fileExporter(
+            isPresented: $isExporting,
+            document: exportDocument,
+            contentType: UTType.commaSeparatedText,
+            defaultFilename:
+                "尾牙得獎名單_\(Date().formatted(.iso8601.year().month().day().dateSeparator(.dash)))"
+        ) { result in
+            switch result {
+            case .success(let url):
+                print("Saved to \(url)")
+            case .failure(let error):
+                print("Export failed: \(error.localizedDescription)")
+            }
         }
     }
 }
@@ -167,6 +206,7 @@ private struct SidebarView: View {
 private struct MainContentAreaView: View {
     @Bindable var viewModel: ContentViewModel
     let rewards: [Reward]
+    let orderedRewards: [Reward]
     let theme: SeasonalTheme
 
     @Environment(\.colorScheme) private var colorScheme
@@ -179,8 +219,12 @@ private struct MainContentAreaView: View {
 
             if let selectedReward = viewModel.selectedReward {
                 // Display the detail view for the selected reward
-                RewardDetailView(reward: selectedReward)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                RewardDetailView(
+                    reward: selectedReward,
+                    contentViewModel: viewModel,
+                    orderedRewards: orderedRewards
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 RewardDetailPlaceholderView(rewards: rewards, theme: theme)
             }

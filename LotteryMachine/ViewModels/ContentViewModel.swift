@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
 @Observable
 class ContentViewModel {
@@ -15,6 +16,74 @@ class ContentViewModel {
 
     /// The currently selected reward in the list.
     var selectedReward: Reward?
+
+    /// Generates a CSV string of winners in a columnar format matching the input CSV header structure.
+    /// Columns are distinct Rewards (Category + Name), and rows list the winners.
+    ///
+    /// - Parameter rewards: The list of rewards to export.
+    /// - Returns: A CSV formatted string.
+    func generateExportCSV(from rewards: [Reward]) -> String {
+        // 1. Group winners by "Category - RewardName"
+        // We need to fetch all distinct reward types (Category + Name)
+        // because multiple Reward objects might represent the same prize type or be separate slots.
+        // We'll treat unique (Category, Name) pairs as columns.
+
+        struct RewardKey: Hashable, Comparable {
+            let category: String
+            let name: String
+
+            static func < (lhs: RewardKey, rhs: RewardKey) -> Bool {
+                if lhs.category != rhs.category {
+                    return lhs.category < rhs.category
+                }
+                return lhs.name < rhs.name
+            }
+
+            var header: String {
+                "\(category) - \(name)"
+            }
+        }
+
+        var columnData: [RewardKey: [String]] = [:]
+
+        // Group rewards
+        for reward in rewards {
+            let key = RewardKey(category: reward.category, name: reward.name)
+            let winnerNames = reward.winners.map { $0.name }
+            columnData[key, default: []].append(contentsOf: winnerNames)
+        }
+
+        let sortedKeys = columnData.keys.sorted()
+
+        // 2. Determine max number of rows needed
+        let maxRows = columnData.values.map { $0.count }.max() ?? 0
+
+        // 3. Construct CSV Header
+        var csvString = sortedKeys.map { $0.header }.joined(separator: ",") + "\n"
+
+        // 4. Construct Rows
+        for i in 0..<maxRows {
+            var rowValues: [String] = []
+            for key in sortedKeys {
+                let winners = columnData[key] ?? []
+                if i < winners.count {
+                    // Escape commas if necessary
+                    let name = winners[i]
+                    if name.contains(",") || name.contains("\"") || name.contains("\n") {
+                        let escaped = name.replacingOccurrences(of: "\"", with: "\"\"")
+                        rowValues.append("\"\(escaped)\"")
+                    } else {
+                        rowValues.append(name)
+                    }
+                } else {
+                    rowValues.append("") // Empty cell
+                }
+            }
+            csvString += rowValues.joined(separator: ",") + "\n"
+        }
+
+        return csvString
+    }
 
     // MARK: - Category Order Management
 

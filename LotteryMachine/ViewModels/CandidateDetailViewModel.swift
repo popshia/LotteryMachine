@@ -127,7 +127,7 @@ class CandidateDetailViewModel {
         }
 
         // 2. Perform Batch Reset
-        for reward in rewards.filter({ $0.name != "總經理獎" }) {
+        for reward in rewards.filter({ $0.category != "總經理獎遊戲" }) {
             // Logic matching resetWinners
             reward.winners.removeAll()
             reward.isDrawn = false

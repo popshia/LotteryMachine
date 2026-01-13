@@ -45,8 +45,16 @@ struct WinnersDisplayView: View {
                     < ($1.winTimestamp ?? Date.distantPast)
             }
         ) { winner in
-            Text(winner.name)
-                .multilineTextAlignment(.center)
+            if winner.name.count > 3 {
+                (Text(winner.name.prefix(3)).font(.system(size: 48))
+                    + Text(String(winner.name.last!)).font(.system(size: 24)).baselineOffset(
+                        24
+                    ))
+                    .multilineTextAlignment(.center)
+            } else {
+                Text(winner.name).font(.system(size: 48))
+                    .multilineTextAlignment(.center)
+            }
         }
     }
 }
